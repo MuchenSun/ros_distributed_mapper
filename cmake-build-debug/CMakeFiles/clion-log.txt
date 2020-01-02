@@ -1,0 +1,21 @@
+/home/msun/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/193.5662.56/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/msun/catkin_ws/src/distributed_mapper
+-- Using CATKIN_DEVEL_PREFIX: /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel
+-- Using CMAKE_PREFIX_PATH: /home/msun/catkin_ws/devel;/opt/ros/melodic
+-- This workspace overlays: /home/msun/catkin_ws/devel;/opt/ros/melodic
+-- Found PythonInterp: /usr/bin/python2 (found suitable version "2.7.17", minimum required is "2") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python2
+-- Using Debian Python package layout
+-- Using empy: /usr/bin/empy
+-- Using CATKIN_ENABLE_TESTING: ON
+-- Call enable_testing()
+-- Using CATKIN_TEST_RESULTS_DIR: /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/test_results
+-- Found gtest sources under '/usr/src/googletest': gtests will be built
+-- Found gmock sources under '/usr/src/googletest': gmock will be built
+-- Found PythonInterp: /usr/bin/python2 (found version "2.7.17") 
+-- Using Python nosetests: /usr/bin/nosetests-2.7
+-- catkin 0.7.19
+-- BUILD_SHARED_LIBS is on
+-- GTSAM include directory:  /usr/local/lib/cmake/GTSAM/../../../include;/usr/include;/usr/local/include/gtsam/3rdparty/Eigen/
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug
