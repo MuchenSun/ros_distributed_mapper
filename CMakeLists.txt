@@ -164,19 +164,19 @@ add_executable(
         src/MultiRobotUtils.cpp
 )
 
-add_executable(
-        ${PROJECT_NAME}_node_2
-        src/distributed_mapper_node_2.cpp
-        src/DistributedMapper.cpp
-        src/MultiRobotUtils.cpp
-)
-
-add_executable(
-        ${PROJECT_NAME}_node_3
-        src/distributed_mapper_node_3.cpp
-        src/DistributedMapper.cpp
-        src/MultiRobotUtils.cpp
-)
+#add_executable(
+#        ${PROJECT_NAME}_node_2
+#        src/distributed_mapper_node_2.cpp
+#        src/DistributedMapper.cpp
+#        src/MultiRobotUtils.cpp
+#)
+#
+#add_executable(
+#        ${PROJECT_NAME}_node_3
+#        src/distributed_mapper_node_3.cpp
+#        src/DistributedMapper.cpp
+#        src/MultiRobotUtils.cpp
+#)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -205,21 +205,21 @@ target_link_libraries(
         /home/msun/Code/distributed-mapper/distributed_mapper_core/cpp/build/libdistributed-mapper.so
 )
 
-target_link_libraries(
-        ${PROJECT_NAME}_node_2
-        ${catkin_LIBRARIES}
-        ${Boost_LIBRARIES}
-        gtsam
-        /home/msun/Code/distributed-mapper/distributed_mapper_core/cpp/build/libdistributed-mapper.so
-)
-
-target_link_libraries(
-        ${PROJECT_NAME}_node_3
-        ${catkin_LIBRARIES}
-        ${Boost_LIBRARIES}
-        gtsam
-        /home/msun/Code/distributed-mapper/distributed_mapper_core/cpp/build/libdistributed-mapper.so
-)
+#target_link_libraries(
+#        ${PROJECT_NAME}_node_2
+#        ${catkin_LIBRARIES}
+#        ${Boost_LIBRARIES}
+#        gtsam
+#        /home/msun/Code/distributed-mapper/distributed_mapper_core/cpp/build/libdistributed-mapper.so
+#)
+#
+#target_link_libraries(
+#        ${PROJECT_NAME}_node_3
+#        ${catkin_LIBRARIES}
+#        ${Boost_LIBRARIES}
+#        gtsam
+#        /home/msun/Code/distributed-mapper/distributed_mapper_core/cpp/build/libdistributed-mapper.so
+#)
 
 #############
 ## Install ##

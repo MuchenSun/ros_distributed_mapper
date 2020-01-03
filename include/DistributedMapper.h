@@ -3,6 +3,9 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <iostream>
+#include <utility>
+#include <vector>
+#include <boost/lexical_cast.hpp>
 
 #include <MultiRobotUtils.h>
 #include <BetweenChordalFactor.h>
@@ -42,11 +45,13 @@ namespace distributed_mapper{
         /**
          * @brief DistributedMapper constructor
          */
-        DistributedMapper(char robotName, std::string robotNames, bool useChrLessFullGraph = false, bool useFlaggedInit = false){
+        DistributedMapper(ros::NodeHandle &nh_, char robotName, std::string robotNames, bool useChrLessFullGraph = false, bool useFlaggedInit = false){
             // Config
+            currIter_ = -1;
+            currNeighbor_ = robotName;
             verbosity_ = SILENT;
             robotName_ = robotName;
-            robotNames_ = robotNames;
+            robotNames_ = std::move(robotNames); // suggested by clang
             rotationNoiseModel_ = gtsam::noiseModel::Isotropic::Variance(9, 1);
             poseNoiseModel_ = gtsam::noiseModel::Isotropic::Variance(12, 1);
             graph_ = gtsam::NonlinearFactorGraph();
@@ -68,22 +73,131 @@ namespace distributed_mapper{
             latestChange_ = DBL_MAX;
 
             // Initialize communication configurations
-            robotNameSubscriber_ = nh_.subscribe<std_msgs::String>("robot_name", 10, &DistributedMapper::robotNameCallBack, this);
-            robotNamePublisher_ = nh_.advertise<std_msgs::String>("/robot_name", 1, true);
+            currIterRotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_request", 10, &DistributedMapper::currIterRotationRequestCallBack, this);
+            currIterRotationRequestPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_request", 10, true);
+
+            currIterRotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_data", 10, &DistributedMapper::currIterRotationDataCallBack, this);
+            currIterRotationDataPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_data", 1, true);
+
+            currIterPoseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_pose_iteration_request", 10, &DistributedMapper::currIterPoseRequestCallBack, this);
+            currIterPoseRequestPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_request", 1, true);
+
+            currIterPoseDataSubscriber_ = nh_.subscribe<std_msgs::String>("current_pose_iteration_data", 10, &DistributedMapper::currIterPoseDataCallBack, this);
+            currIterPoseDataPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_data", 1, true);
 
             rotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_request", 10, &DistributedMapper::rotationRequestCallBack, this);
-            rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("/rotation_request", 1, true);
+            rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("rotation_request", 1, true);
 
             rotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_data", 10, &DistributedMapper::rotationDataCallBack, this);
-            rotationDataPublisher_ = nh_.advertise<std_msgs::String>("/rotation_data", 1, true);
+            rotationDataPublisher_ = nh_.advertise<std_msgs::String>("rotation_data", 1, true);
 
             poseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("pose_request", 10, &DistributedMapper::poseRequestCallBack, this);
-            poseRequestPublisher_ = nh_.advertise<std_msgs::String>("/pose_request", 1, true);
+            poseRequestPublisher_ = nh_.advertise<std_msgs::String>("pose_request", 1, true);
 
             poseDataSubscriber_ = nh_.subscribe<std_msgs::String>("pose_data", 10, &DistributedMapper::poseDataCallBack, this);
-            poseDataPublisher_ = nh_.advertise<std_msgs::String>("/pose_data", 1, true);
+            poseDataPublisher_ = nh_.advertise<std_msgs::String>("pose_data", 1, true);
         }
 
+        bool currIterCheckFlag_;
+        char currNeighbor_;
+
+        ros::Subscriber currIterRotationRequestSubscriber_;
+        ros::Publisher currIterRotationRequestPublisher_;
+        void currIterRotationRequestCallBack(const std_msgs::StringConstPtr& _robotNameMsg) {
+            // input msg: (source target)
+            char source = _robotNameMsg->data[0];
+            char target = _robotNameMsg->data[1];
+//            ROS_INFO_STREAM("Source: " << source << ", Target: " << target);
+            if(target == robotName_) {
+//                ROS_INFO_STREAM("Robot matched");
+                std_msgs::String msg;
+                std::stringstream ss;
+                ss << robotName_ << source << "," << currIter_;
+                msg.data = ss.str();
+                currIterRotationDataPublisher_.publish(msg);
+            }
+        };
+
+        ros::Subscriber currIterRotationDataSubscriber_;
+        ros::Publisher currIterRotationDataPublisher_;
+        void currIterRotationDataCallBack(const std_msgs::StringConstPtr& _currIterMsg) {
+//            ROS_INFO_STREAM("Receive: current rotation iteration data msg.");
+            // parse msg
+            std::stringstream ss;
+            ss << _currIterMsg->data;
+            std::vector<std::string> vect;
+            while(ss.good()) {
+                std::string substr;
+                getline(ss, substr, ',');
+                vect.push_back(substr);
+            }
+            char source = vect[0][0];
+            char target = vect[0][1];
+            int recvCurrIter = boost::lexical_cast<int>(vect[1]);
+//            ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", CurrIter: " << recvCurrIter);
+
+            // compare incoming currIter with self
+            if(target == robotName_ && source == currNeighbor_ && recvCurrIter == currIter_) {
+                currIterCheckFlag_ = true;
+            }
+        };
+
+        ros::Subscriber currIterPoseRequestSubscriber_;
+        ros::Publisher currIterPoseRequestPublisher_;
+        void currIterPoseRequestCallBack(const std_msgs::StringConstPtr& _currIterMsg) {
+            // process
+        };
+
+        ros::Subscriber currIterPoseDataSubscriber_;
+        ros::Publisher currIterPoseDataPublisher_;
+        void currIterPoseDataCallBack(const std_msgs::StringConstPtr& _currIterMsg) {
+            // process
+        };
+
+        ros::Subscriber rotationRequestSubscriber_;
+        ros::Publisher rotationRequestPublisher_;
+        void rotationRequestCallBack(const std_msgs::StringConstPtr& _rotationRequestMsg) {
+            // parse
+            std::stringstream ss;
+            ss << _rotationRequestMsg->data;
+            std::vector<std::string> vect;
+            while(ss.good()) {
+                std::string substr;
+                getline(ss, substr, ',');
+                vect.push_back(substr);
+            }
+            char source = vect[0][0];
+            char target = vect[0][1];
+            uint64_t key = boost::lexical_cast<uint64_t>(vect[1]);
+//            ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
+
+            // check if this msg is for me
+            if(target == robotName_) {
+                gtsam::Vector rotationEstimates = linearizedRotationAt(key);
+                // send rotationEstimates back to source
+                ss.str("");
+                
+            }
+        };
+
+        ros::Subscriber poseRequestSubscriber_;
+        ros::Publisher poseRequestPublisher_;
+        void poseRequestCallBack(const std_msgs::StringConstPtr& _poseRequestMsg) {
+            // process
+            // publish
+        };
+
+        ros::Subscriber rotationDataSubscriber_;
+        ros::Publisher rotationDataPublisher_;
+        void rotationDataCallBack(const std_msgs::StringConstPtr& _rotationDataMsg) {
+            // process
+        };
+
+        ros::Subscriber poseDataSubscriber_;
+        ros::Publisher poseDataPublisher_;
+        void poseDataCallBack(const std_msgs::StringConstPtr& _poseDataMsg) {
+            // process
+        };
 
         /** Set the flag whether to use landmarks or not */
         void setUseLandmarksFlag(bool useLandmarks){
@@ -474,10 +588,14 @@ namespace distributed_mapper{
         UpdateType updateType_;
         double gamma_;
 
+        void incCurrIter() {currIter_++;}
+        void initCurrIter() {currIter_ = 0;}
+
 
     protected:
         int robotId_;
-        std::string robotNames_;
+        std::string robotNames_; // names for all communicating robots, read from g2o
+        int currIter_;
 
         bool debug_; // Debug flag
         gtsam::noiseModel::Diagonal::shared_ptr rotationNoiseModel_;
@@ -520,40 +638,6 @@ namespace distributed_mapper{
         double centralizedError_; // log it for plotting
         gtsam::Values centralizedValues_; // centralized estimate converted to the estimate format of this graph
         Verbosity verbosity_; // Verbosity level
-
-        // Communication
-        ros::NodeHandle nh_;
-        ros::Subscriber robotNameSubscriber_;
-        ros::Publisher robotNamePublisher_;
-        void robotNameCallBack(const std_msgs::StringConstPtr& _nameMsg) {
-            // process
-        };
-
-        ros::Subscriber rotationRequestSubscriber_;
-        ros::Publisher rotationRequestPublisher_;
-        void rotationRequestCallBack(const std_msgs::StringConstPtr& _rotationRequestMsg) {
-            // process
-            // publish
-        };
-
-        ros::Subscriber poseRequestSubscriber_;
-        ros::Publisher poseRequestPublisher_;
-        void poseRequestCallBack(const std_msgs::StringConstPtr& _poseRequestMsg) {
-            // process
-            // publish
-        };
-
-        ros::Subscriber rotationDataSubscriber_;
-        ros::Publisher rotationDataPublisher_;
-        void rotationDataCallBack(const std_msgs::StringConstPtr& _rotationDataMsg) {
-            // process
-        };
-
-        ros::Subscriber poseDataSubscriber_;
-        ros::Publisher poseDataPublisher_;
-        void poseDataCallBack(const std_msgs::StringConstPtr& _poseDataMsg) {
-            // process
-        };
     };
 
 }
