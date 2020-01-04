@@ -189,7 +189,6 @@ namespace distributed_mapper{
         if(debug)
             std::cout << "[optimizeRotation] Starting rotation iteration"  << std::endl;
 
-
         // Iterations
         for(size_t iter=0; iter < maxIter; iter++){
             gtsam::Values distributed_iter; // For logging

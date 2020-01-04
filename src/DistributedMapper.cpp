@@ -1,5 +1,5 @@
 #include <DistributedMapper.h>
-
+#include <ros/ros.h>
 
 using namespace std;
 using namespace gtsam;
@@ -166,6 +166,7 @@ DistributedMapper::estimateRotation(){
 
     double error = rotSubgraph.error(newLinearizedRotation_);
     rotationErrorTrace_.push_back(error);
+    ROS_INFO_STREAM("[optimizaRotation] " << robotName_ << ", error: " << error);
   }  
 }
 

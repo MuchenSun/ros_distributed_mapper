@@ -75,6 +75,12 @@ namespace distributed_mapper{
             latestChange_ = DBL_MAX;
 
             // Initialize communication configurations
+            initializedRequestSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_request", 10, &DistributedMapper::initializedRequestCallBack, this);
+            initializedRequestPublisher_ = nh_.advertise<std_msgs::String>("initialized_request", 10, true);
+
+            initializedDataSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_data", 10, &DistributedMapper::initializedDataCallBack, this);
+            initializedDataPublisher_ = nh_.advertise<std_msgs::String>("initialized_data", 10, true);
+
             iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
             iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
 
@@ -111,11 +117,41 @@ namespace distributed_mapper{
 
         void restoreCurrIterReady() {
             currIterReady_ = false;
-            ROS_INFO_STREAM("Current iteration ready has been restored: " << currIterReady_);
+//            ROS_INFO_STREAM("Current iteration ready has been restored: " << currIterReady_);
         }
         void restoreNeighborFlags() {
             neighborFlags_ = "";
-            ROS_INFO_STREAM("Neighbor Flags have been restored: " << neighborFlags_);
+//            ROS_INFO_STREAM("Neighbor Flags have been restored: " << neighborFlags_);
+        }
+
+        ros::Subscriber initializedRequestSubscriber_;
+        ros::Publisher initializedRequestPublisher_;
+        void initializedRequestCallBack(const std_msgs::StringConstPtr& _initializedRequestMsg) {
+            // process
+            // input msg: (source target)
+            char source = _initializedRequestMsg->data[0];
+            char target = _initializedRequestMsg->data[1];
+
+            if(target == robotName_) {
+                std_msgs::String msg;
+                std::stringstream ss;
+                ss << target << source << isRobotInitialized();
+                msg.data = ss.str();
+                initializedDataPublisher_.publish(msg);
+            }
+        }
+
+        ros::Subscriber initializedDataSubscriber_;
+        ros::Publisher initializedDataPublisher_;
+        void initializedDataCallBack(const std_msgs::StringConstPtr& _initializedDataMsg) {
+            // input msg: (source target initialized)
+            char source = _initializedDataMsg->data[0];
+            char target = _initializedDataMsg->data[1];
+            bool neighboringRobotInitialized = (_initializedDataMsg->data[2]==1);
+//            ROS_INFO_STREAM("neighboringRobotInitialized: " << neighboringRobotInitialized);
+            if(target == robotName_) {
+                updateNeighboringRobotInitialized(source, neighboringRobotInitialized);
+            }
         }
 
         ros::Subscriber iterationReadySubscriber_;
@@ -128,7 +164,7 @@ namespace distributed_mapper{
                 neighborFlags_ += sourceName;
             }
             if(neighborFlags_.size() == robotNames_.size()) {
-                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
+//                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
                 currIterReady_ = true;
             }
         }
@@ -208,7 +244,7 @@ namespace distributed_mapper{
                 gtsam::Vector rotationEstimates = linearizedRotationAt(key);
                 // send rotationEstimates back to source
                 std::stringstream ss2;
-                ss2 << target << source;
+                ss2 << target << source << "," << key;
                 for(size_t i=0; i<rotationEstimates.size(); i++) {
 //                    ROS_INFO_STREAM("rotationEstimates[" << i << "]: " << rotationEstimates[i]);
                     ss2 << "," << rotationEstimates[i];
@@ -231,7 +267,29 @@ namespace distributed_mapper{
         ros::Publisher rotationDataPublisher_;
         void rotationDataCallBack(const std_msgs::StringConstPtr& _rotationDataMsg) {
             // parse
+            std::stringstream ss;
+            ss << _rotationDataMsg->data;
+            std::vector<std::string> vect;
+            while(ss.good()) {
+                std::string substr;
+                getline(ss, substr, ',');
+                vect.push_back(substr);
+            }
+            char source = vect[0][0];
+            char target = vect[0][1];
+            uint64_t key = boost::lexical_cast<uint64_t>(vect[1]);
 
+            if(target == robotName_) {
+                // parse rotationEstimates out
+                Eigen::VectorXd rotationEstimate;
+                rotationEstimate.resize(vect.size() - 2);
+                for(size_t iter=2; iter<vect.size(); iter++) {
+                    rotationEstimate[iter-2] = boost::lexical_cast<double>(vect[iter]);
+                }
+//                ROS_INFO_STREAM("rotationEstimate: " << rotationEstimate);
+                // update neighbor rotation
+                updateNeighborLinearizedRotations(key, rotationEstimate);
+            }
         };
 
         ros::Subscriber poseDataSubscriber_;
@@ -426,9 +484,11 @@ namespace distributed_mapper{
             // Update the value if symbol already exists
             if(neighborsLinearizedRotations_.exists(key)){
                 neighborsLinearizedRotations_.at(key) = vectorValue;
+//                ROS_INFO_STREAM("case 1");
             }
             else{
                 neighborsLinearizedRotations_.insert(key, vectorValue);
+//                ROS_INFO_STREAM("case 2");
             }
         }
 
@@ -577,6 +637,7 @@ namespace distributed_mapper{
         * @param flag
         */
         void updateNeighboringRobotInitialized(char robot, bool flag){
+//            ROS_INFO_STREAM("case any");
             if(neighboringRobotsInitialized_.find(robot) != neighboringRobotsInitialized_.end()){
                 neighboringRobotsInitialized_.at(robot) = flag;
             }
