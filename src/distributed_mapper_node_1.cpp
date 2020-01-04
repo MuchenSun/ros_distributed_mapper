@@ -296,15 +296,21 @@ int main(int argc, char* argv[]) {
                 // Before starting no robot is optimized
                 distMapper->updateInitialized(false);
                 distMapper->clearNeighboringRobotInit();
+
+//                // reset ready flag for current iteration
+//                distMapper->currIterReady_ == false;
+//                // clear neighborFlags
+//                distMapper->neighborFlags_ = "";
+
                 // Iterations
                 ROS_INFO_STREAM("Maximaum Iteration: " << maxIter);
                 for (size_t iter = 0; iter < 10 && ros::ok(); iter++) {
-                    // reset ready flag for current iteration
-                    distMapper->currIterReady_ == false;
                     // update currIter_
                     distMapper->currIter_ = iter;
+                    // reset ready flag for current iteration
+                    distMapper->restoreCurrIterReady();
                     // clear neighborFlags
-                    distMapper->neighborFlags_ = "";
+                    distMapper->restoreNeighborFlags();
 
                     // ask other robots for updated estimates and update it
                     for (const gtsam::Values::ConstKeyValuePair &key_value: distMapper->neighbors()) {
@@ -312,7 +318,8 @@ int main(int argc, char* argv[]) {
                         // the robot is currently communicating, so we check if the neighbor keys
                         // are from one of these robots
                         char symbol = gtsam::symbolChr(key);
-                        ROS_INFO_STREAM("Current neighbor: " << symbol << ", current iter: " << distMapper->currIter_);
+                        ROS_INFO_STREAM("\nCurrent neighbor: " << symbol << ", current iter: " << distMapper->currIter_);
+                        ROS_INFO_STREAM("Robot[" << distMapper->robotName() << "] current iteration ready: " << distMapper->currIterReady_ << " | " << distMapper->neighborFlags_);
                         if (useLandmarks) { symbol = tolower(symbol); }
                         size_t neighboringRobotId = distMapper->robotNames().find(symbol);
                         distMapper->currIterCheckFlag_ = false;
@@ -343,18 +350,6 @@ int main(int argc, char* argv[]) {
                             distMapper->rotationRequestPublisher_.publish(rotation_request);
                             ROS_INFO_STREAM("Robot [" << distMapper->robotName() << "]: Rotation Request Published");
 
-                            // before goes into next iteration, check if all neighbors are ready
-//                            while(distMapper->currIterReady_ == false && ros::ok()) {
-//                                ss.str("");
-//                                ss << distMapper->robotName();
-//                                std_msgs::String iteration_ready_msg;
-//                                iteration_ready_msg.data = ss.str();
-//                                distMapper->iterationReadyPublisher_.publish(iteration_ready_msg);
-//
-//                                rate.sleep();
-//                                ros::spinOnce();
-//                            }
-
                             // goes to next iteration
                             rate.sleep();
                             ros::spinOnce();
@@ -365,6 +360,24 @@ int main(int argc, char* argv[]) {
                             ros::spinOnce();
                         }
                     }
+
+                    // before goes into next iteration, check if all neighbors are ready
+//                    ROS_INFO_STREAM("Robot[" << distMapper->robotName() << "] current iteration ready: " << distMapper->currIterReady_);
+                    while(distMapper->currIterReady_ == false && ros::ok()) {
+                        ss.str("");
+                        ss << distMapper->robotName();
+                        std_msgs::String iteration_ready_msg;
+                        iteration_ready_msg.data = ss.str();
+                        distMapper->iterationReadyPublisher_.publish(iteration_ready_msg);
+
+                        rate.sleep();
+                        ros::spinOnce();
+                    }
+                    ROS_INFO_STREAM("Robot[" << distMapper->robotName() << "] check for next iteration: " << distMapper->neighborFlags_);
+//                    // reset ready flag for current iteration
+//                    distMapper->restoreCurrIterReady();
+//                    // clear neighborFlags
+//                    distMapper->restoreNeighborFlags();
 
                     rate.sleep();
                     ros::spinOnce();

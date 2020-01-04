@@ -109,18 +109,27 @@ namespace distributed_mapper{
         std::string neighborFlags_;
         char currNeighbor_;
 
+        void restoreCurrIterReady() {
+            currIterReady_ = false;
+            ROS_INFO_STREAM("Current iteration ready has been restored: " << currIterReady_);
+        }
+        void restoreNeighborFlags() {
+            neighborFlags_ = "";
+            ROS_INFO_STREAM("Neighbor Flags have been restored: " << neighborFlags_);
+        }
+
         ros::Subscriber iterationReadySubscriber_;
         ros::Publisher iterationReadyPublisher_;
         void iterationReadyCallBack(const std_msgs::StringConstPtr& _iterationReadyMsg) {
             const char *raw_msg = _iterationReadyMsg->data.c_str();
             char sourceName = raw_msg[0];
-            if (sourceName != robotName_) {
-                if (neighborFlags_.find(sourceName) == std::string::npos) {
-                    neighborFlags_ += sourceName;
-                }
-                if(neighborFlags_.size() == robotNames_.size()-1) {
-                    currIterReady_ = true;
-                }
+
+            if (neighborFlags_.find(sourceName) == std::string::npos) {
+                neighborFlags_ += sourceName;
+            }
+            if(neighborFlags_.size() == robotNames_.size()) {
+                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
+                currIterReady_ = true;
             }
         }
 
