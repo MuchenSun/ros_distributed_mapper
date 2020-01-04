@@ -243,10 +243,10 @@ namespace distributed_mapper{
                     std::cout << "[optimizeRotation] Estimate rotation complete"  << std::endl;
 
                 /*  Distributed Jacobi: updateType_ = postUpdate, gamma = 1
-              *  Gauss Seidel: updateType_ = incUpdate, gamma = 1
-              *  Jacobi Overrelax: updateType_ = postUpdate, gamma != 1
-              *  Succ Overrelax: updateType_ = incUpdate, gamma != 1
-              */
+                 *  Gauss Seidel: updateType_ = incUpdate, gamma = 1
+                 *  Jacobi Overrelax: updateType_ = postUpdate, gamma != 1
+                 *  Succ Overrelax: updateType_ = incUpdate, gamma != 1
+                 */
                 if(distMappers[robot]->updateType_ == DistributedMapper::incUpdate){
                     distMappers[robot]->updateRotation();
                 }

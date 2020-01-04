@@ -298,14 +298,21 @@ int main(int argc, char* argv[]) {
                 distMapper->clearNeighboringRobotInit();
                 // Iterations
                 ROS_INFO_STREAM("Maximaum Iteration: " << maxIter);
-                for (size_t iter = 0; iter < maxIter && ros::ok(); iter++) {
+                for (size_t iter = 0; iter < 10 && ros::ok(); iter++) {
+                    // reset ready flag for current iteration
+                    distMapper->currIterReady_ == false;
+                    // update currIter_
+                    distMapper->currIter_ = iter;
+                    // clear neighborFlags
+                    distMapper->neighborFlags_ = "";
+
                     // ask other robots for updated estimates and update it
                     for (const gtsam::Values::ConstKeyValuePair &key_value: distMapper->neighbors()) {
                         gtsam::Key key = key_value.key;
                         // the robot is currently communicating, so we check if the neighbor keys
                         // are from one of these robots
                         char symbol = gtsam::symbolChr(key);
-                        ROS_INFO_STREAM("Current neighbor: " << symbol);
+                        ROS_INFO_STREAM("Current neighbor: " << symbol << ", current iter: " << distMapper->currIter_);
                         if (useLandmarks) { symbol = tolower(symbol); }
                         size_t neighboringRobotId = distMapper->robotNames().find(symbol);
                         distMapper->currIterCheckFlag_ = false;
@@ -321,6 +328,7 @@ int main(int argc, char* argv[]) {
                                 curr_iter_rotation_request.data = ss.str();
                                 distMapper->currIterRotationRequestPublisher_.publish(curr_iter_rotation_request);
 //                                ROS_INFO_STREAM("current rotation iteration request published.");
+
                                 rate.sleep();
                                 ros::spinOnce();
                             }
@@ -333,7 +341,21 @@ int main(int argc, char* argv[]) {
                             std_msgs::String rotation_request;
                             rotation_request.data = ss.str();
                             distMapper->rotationRequestPublisher_.publish(rotation_request);
+                            ROS_INFO_STREAM("Robot [" << distMapper->robotName() << "]: Rotation Request Published");
 
+                            // before goes into next iteration, check if all neighbors are ready
+//                            while(distMapper->currIterReady_ == false && ros::ok()) {
+//                                ss.str("");
+//                                ss << distMapper->robotName();
+//                                std_msgs::String iteration_ready_msg;
+//                                iteration_ready_msg.data = ss.str();
+//                                distMapper->iterationReadyPublisher_.publish(iteration_ready_msg);
+//
+//                                rate.sleep();
+//                                ros::spinOnce();
+//                            }
+
+                            // goes to next iteration
                             rate.sleep();
                             ros::spinOnce();
                         } else {
@@ -343,11 +365,12 @@ int main(int argc, char* argv[]) {
                             ros::spinOnce();
                         }
                     }
-                    distMapper->incCurrIter();
 
                     rate.sleep();
                     ros::spinOnce();
                 }
+
+                ROS_INFO_STREAM("Finished.");
 
 //            //////////////////////////////////////////////////////////////////////////
 //            // Here we first pretend there is "estimates"
@@ -436,6 +459,7 @@ int main(int argc, char* argv[]) {
         }
 
 //        ros::spin();
+        ROS_INFO_STREAM("Finished.");
         return 0;
     }
 }

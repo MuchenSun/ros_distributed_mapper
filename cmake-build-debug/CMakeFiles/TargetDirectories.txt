@@ -1,7 +1,9 @@
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/install/strip.dir
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/rebuild_cache.dir
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/test.dir
+/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/distributed_mapper_node_2.dir
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/distributed_mapper_node_0.dir
+/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/distributed_mapper_node_3.dir
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/std_msgs_generate_messages_nodejs.dir
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/std_msgs_generate_messages_lisp.dir
 /home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/CMakeFiles/install/local.dir

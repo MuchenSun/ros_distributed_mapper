@@ -49,6 +49,8 @@ namespace distributed_mapper{
             // Config
             currIter_ = -1;
             currNeighbor_ = robotName;
+            currIterReady_ = false;
+            neighborFlags_ = "";
             verbosity_ = SILENT;
             robotName_ = robotName;
             robotNames_ = std::move(robotNames); // suggested by clang
@@ -73,33 +75,54 @@ namespace distributed_mapper{
             latestChange_ = DBL_MAX;
 
             // Initialize communication configurations
+            iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
+            iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
+
             currIterRotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_request", 10, &DistributedMapper::currIterRotationRequestCallBack, this);
             currIterRotationRequestPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_request", 10, true);
 
             currIterRotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_data", 10, &DistributedMapper::currIterRotationDataCallBack, this);
-            currIterRotationDataPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_data", 1, true);
+            currIterRotationDataPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_data", 10, true);
 
             currIterPoseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_pose_iteration_request", 10, &DistributedMapper::currIterPoseRequestCallBack, this);
-            currIterPoseRequestPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_request", 1, true);
+            currIterPoseRequestPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_request", 10, true);
 
             currIterPoseDataSubscriber_ = nh_.subscribe<std_msgs::String>("current_pose_iteration_data", 10, &DistributedMapper::currIterPoseDataCallBack, this);
-            currIterPoseDataPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_data", 1, true);
+            currIterPoseDataPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_data", 10, true);
 
             rotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_request", 10, &DistributedMapper::rotationRequestCallBack, this);
-            rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("rotation_request", 1, true);
+            rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("rotation_request", 10, true);
 
             rotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_data", 10, &DistributedMapper::rotationDataCallBack, this);
-            rotationDataPublisher_ = nh_.advertise<std_msgs::String>("rotation_data", 1, true);
+            rotationDataPublisher_ = nh_.advertise<std_msgs::String>("rotation_data", 10, true);
 
             poseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("pose_request", 10, &DistributedMapper::poseRequestCallBack, this);
-            poseRequestPublisher_ = nh_.advertise<std_msgs::String>("pose_request", 1, true);
+            poseRequestPublisher_ = nh_.advertise<std_msgs::String>("pose_request", 10, true);
 
             poseDataSubscriber_ = nh_.subscribe<std_msgs::String>("pose_data", 10, &DistributedMapper::poseDataCallBack, this);
-            poseDataPublisher_ = nh_.advertise<std_msgs::String>("pose_data", 1, true);
+            poseDataPublisher_ = nh_.advertise<std_msgs::String>("pose_data", 10, true);
         }
 
+        size_t currIter_;
         bool currIterCheckFlag_;
+        bool currIterReady_;
+        std::string neighborFlags_;
         char currNeighbor_;
+
+        ros::Subscriber iterationReadySubscriber_;
+        ros::Publisher iterationReadyPublisher_;
+        void iterationReadyCallBack(const std_msgs::StringConstPtr& _iterationReadyMsg) {
+            const char *raw_msg = _iterationReadyMsg->data.c_str();
+            char sourceName = raw_msg[0];
+            if (sourceName != robotName_) {
+                if (neighborFlags_.find(sourceName) == std::string::npos) {
+                    neighborFlags_ += sourceName;
+                }
+                if(neighborFlags_.size() == robotNames_.size()-1) {
+                    currIterReady_ = true;
+                }
+            }
+        }
 
         ros::Subscriber currIterRotationRequestSubscriber_;
         ros::Publisher currIterRotationRequestPublisher_;
@@ -175,8 +198,16 @@ namespace distributed_mapper{
             if(target == robotName_) {
                 gtsam::Vector rotationEstimates = linearizedRotationAt(key);
                 // send rotationEstimates back to source
-                ss.str("");
-                
+                std::stringstream ss2;
+                ss2 << target << source;
+                for(size_t i=0; i<rotationEstimates.size(); i++) {
+//                    ROS_INFO_STREAM("rotationEstimates[" << i << "]: " << rotationEstimates[i]);
+                    ss2 << "," << rotationEstimates[i];
+                }
+                std_msgs::String msg;
+                msg.data = ss2.str();
+//                ROS_INFO_STREAM("Publishing rotation msg: " << ss2.str());
+                rotationDataPublisher_.publish(msg);
             }
         };
 
@@ -190,7 +221,8 @@ namespace distributed_mapper{
         ros::Subscriber rotationDataSubscriber_;
         ros::Publisher rotationDataPublisher_;
         void rotationDataCallBack(const std_msgs::StringConstPtr& _rotationDataMsg) {
-            // process
+            // parse
+
         };
 
         ros::Subscriber poseDataSubscriber_;
@@ -595,7 +627,6 @@ namespace distributed_mapper{
     protected:
         int robotId_;
         std::string robotNames_; // names for all communicating robots, read from g2o
-        int currIter_;
 
         bool debug_; // Debug flag
         gtsam::noiseModel::Diagonal::shared_ptr rotationNoiseModel_;

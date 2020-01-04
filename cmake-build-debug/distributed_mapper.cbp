@@ -47,6 +47,68 @@
 					<DistClean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
+			<Target title="distributed_mapper_node_2">
+				<Option output="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper/distributed_mapper_node_2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DROS_BUILD_SHARED_LIBS=1"/>
+					<Add option="-DROS_PACKAGE_NAME=&quot;distributed_mapper&quot;"/>
+					<Add option="-DROSCONSOLE_BACKEND_LOG4CXX"/>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/home/msun/catkin_ws/src/distributed_mapper/include"/>
+					<Add directory="/opt/ros/melodic/include"/>
+					<Add directory="/opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 distributed_mapper_node_2"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="distributed_mapper_node_2/fast">
+				<Option output="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper/distributed_mapper_node_2" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DROS_BUILD_SHARED_LIBS=1"/>
+					<Add option="-DROS_PACKAGE_NAME=&quot;distributed_mapper&quot;"/>
+					<Add option="-DROSCONSOLE_BACKEND_LOG4CXX"/>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/home/msun/catkin_ws/src/distributed_mapper/include"/>
+					<Add directory="/opt/ros/melodic/include"/>
+					<Add directory="/opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 distributed_mapper_node_2/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
 			<Target title="distributed_mapper_node_0">
 				<Option output="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper/distributed_mapper_node_0" prefix_auto="0" extension_auto="0"/>
 				<Option working_dir="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper"/>
@@ -104,6 +166,68 @@
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 distributed_mapper_node_0/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="distributed_mapper_node_3">
+				<Option output="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper/distributed_mapper_node_3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DROS_BUILD_SHARED_LIBS=1"/>
+					<Add option="-DROS_PACKAGE_NAME=&quot;distributed_mapper&quot;"/>
+					<Add option="-DROSCONSOLE_BACKEND_LOG4CXX"/>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/home/msun/catkin_ws/src/distributed_mapper/include"/>
+					<Add directory="/opt/ros/melodic/include"/>
+					<Add directory="/opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 distributed_mapper_node_3"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="distributed_mapper_node_3/fast">
+				<Option output="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper/distributed_mapper_node_3" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/devel/lib/distributed_mapper"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DROS_BUILD_SHARED_LIBS=1"/>
+					<Add option="-DROS_PACKAGE_NAME=&quot;distributed_mapper&quot;"/>
+					<Add option="-DROSCONSOLE_BACKEND_LOG4CXX"/>
+					<Add directory="/usr/local/lib/cmake/GTSAM/../../../include"/>
+					<Add directory="/usr/local/include/gtsam/3rdparty/Eigen"/>
+					<Add directory="/home/msun/catkin_ws/src/distributed_mapper/include"/>
+					<Add directory="/opt/ros/melodic/include"/>
+					<Add directory="/opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 distributed_mapper_node_3/fast"/>
 					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j4 -f &quot;/home/msun/catkin_ws/src/distributed_mapper/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
@@ -629,11 +753,15 @@
 			</Target>
 		</Build>
 		<Unit filename="/home/msun/catkin_ws/src/distributed_mapper/src/DistributedMapper.cpp">
+			<Option target="distributed_mapper_node_2"/>
 			<Option target="distributed_mapper_node_0"/>
+			<Option target="distributed_mapper_node_3"/>
 			<Option target="distributed_mapper_node_1"/>
 		</Unit>
 		<Unit filename="/home/msun/catkin_ws/src/distributed_mapper/src/MultiRobotUtils.cpp">
+			<Option target="distributed_mapper_node_2"/>
 			<Option target="distributed_mapper_node_0"/>
+			<Option target="distributed_mapper_node_3"/>
 			<Option target="distributed_mapper_node_1"/>
 		</Unit>
 		<Unit filename="/home/msun/catkin_ws/src/distributed_mapper/src/distributed_mapper_node_0.cpp">
@@ -641,6 +769,12 @@
 		</Unit>
 		<Unit filename="/home/msun/catkin_ws/src/distributed_mapper/src/distributed_mapper_node_1.cpp">
 			<Option target="distributed_mapper_node_1"/>
+		</Unit>
+		<Unit filename="/home/msun/catkin_ws/src/distributed_mapper/src/distributed_mapper_node_2.cpp">
+			<Option target="distributed_mapper_node_2"/>
+		</Unit>
+		<Unit filename="/home/msun/catkin_ws/src/distributed_mapper/src/distributed_mapper_node_3.cpp">
+			<Option target="distributed_mapper_node_3"/>
 		</Unit>
 		<Unit filename="/usr/src/googletest/googlemock/src/gmock-all.cc">
 			<Option target="gmock_main"/>

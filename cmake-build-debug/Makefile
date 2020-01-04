@@ -168,6 +168,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named distributed_mapper_node_2
+
+# Build rule for target.
+distributed_mapper_node_2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 distributed_mapper_node_2
+.PHONY : distributed_mapper_node_2
+
+# fast build rule for target.
+distributed_mapper_node_2/fast:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/build
+.PHONY : distributed_mapper_node_2/fast
+
+#=============================================================================
 # Target rules for targets named distributed_mapper_node_0
 
 # Build rule for target.
@@ -179,6 +192,19 @@ distributed_mapper_node_0: cmake_check_build_system
 distributed_mapper_node_0/fast:
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/build
 .PHONY : distributed_mapper_node_0/fast
+
+#=============================================================================
+# Target rules for targets named distributed_mapper_node_3
+
+# Build rule for target.
+distributed_mapper_node_3: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 distributed_mapper_node_3
+.PHONY : distributed_mapper_node_3
+
+# fast build rule for target.
+distributed_mapper_node_3/fast:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/build
+.PHONY : distributed_mapper_node_3/fast
 
 #=============================================================================
 # Target rules for targets named std_msgs_generate_messages_nodejs
@@ -511,7 +537,9 @@ src/DistributedMapper.o: src/DistributedMapper.cpp.o
 
 # target to build an object file
 src/DistributedMapper.cpp.o:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/DistributedMapper.cpp.o
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/src/DistributedMapper.cpp.o
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/DistributedMapper.cpp.o
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/DistributedMapper.cpp.o
 .PHONY : src/DistributedMapper.cpp.o
 
@@ -521,7 +549,9 @@ src/DistributedMapper.i: src/DistributedMapper.cpp.i
 
 # target to preprocess a source file
 src/DistributedMapper.cpp.i:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/DistributedMapper.cpp.i
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/src/DistributedMapper.cpp.i
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/DistributedMapper.cpp.i
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/DistributedMapper.cpp.i
 .PHONY : src/DistributedMapper.cpp.i
 
@@ -531,7 +561,9 @@ src/DistributedMapper.s: src/DistributedMapper.cpp.s
 
 # target to generate assembly for a file
 src/DistributedMapper.cpp.s:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/DistributedMapper.cpp.s
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/src/DistributedMapper.cpp.s
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/DistributedMapper.cpp.s
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/DistributedMapper.cpp.s
 .PHONY : src/DistributedMapper.cpp.s
 
@@ -541,7 +573,9 @@ src/MultiRobotUtils.o: src/MultiRobotUtils.cpp.o
 
 # target to build an object file
 src/MultiRobotUtils.cpp.o:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/MultiRobotUtils.cpp.o
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/src/MultiRobotUtils.cpp.o
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/MultiRobotUtils.cpp.o
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/MultiRobotUtils.cpp.o
 .PHONY : src/MultiRobotUtils.cpp.o
 
@@ -551,7 +585,9 @@ src/MultiRobotUtils.i: src/MultiRobotUtils.cpp.i
 
 # target to preprocess a source file
 src/MultiRobotUtils.cpp.i:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/MultiRobotUtils.cpp.i
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/src/MultiRobotUtils.cpp.i
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/MultiRobotUtils.cpp.i
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/MultiRobotUtils.cpp.i
 .PHONY : src/MultiRobotUtils.cpp.i
 
@@ -561,7 +597,9 @@ src/MultiRobotUtils.s: src/MultiRobotUtils.cpp.s
 
 # target to generate assembly for a file
 src/MultiRobotUtils.cpp.s:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/MultiRobotUtils.cpp.s
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_0.dir/build.make CMakeFiles/distributed_mapper_node_0.dir/src/MultiRobotUtils.cpp.s
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/MultiRobotUtils.cpp.s
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/MultiRobotUtils.cpp.s
 .PHONY : src/MultiRobotUtils.cpp.s
 
@@ -619,6 +657,60 @@ src/distributed_mapper_node_1.cpp.s:
 	$(MAKE) -f CMakeFiles/distributed_mapper_node_1.dir/build.make CMakeFiles/distributed_mapper_node_1.dir/src/distributed_mapper_node_1.cpp.s
 .PHONY : src/distributed_mapper_node_1.cpp.s
 
+src/distributed_mapper_node_2.o: src/distributed_mapper_node_2.cpp.o
+
+.PHONY : src/distributed_mapper_node_2.o
+
+# target to build an object file
+src/distributed_mapper_node_2.cpp.o:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/distributed_mapper_node_2.cpp.o
+.PHONY : src/distributed_mapper_node_2.cpp.o
+
+src/distributed_mapper_node_2.i: src/distributed_mapper_node_2.cpp.i
+
+.PHONY : src/distributed_mapper_node_2.i
+
+# target to preprocess a source file
+src/distributed_mapper_node_2.cpp.i:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/distributed_mapper_node_2.cpp.i
+.PHONY : src/distributed_mapper_node_2.cpp.i
+
+src/distributed_mapper_node_2.s: src/distributed_mapper_node_2.cpp.s
+
+.PHONY : src/distributed_mapper_node_2.s
+
+# target to generate assembly for a file
+src/distributed_mapper_node_2.cpp.s:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_2.dir/build.make CMakeFiles/distributed_mapper_node_2.dir/src/distributed_mapper_node_2.cpp.s
+.PHONY : src/distributed_mapper_node_2.cpp.s
+
+src/distributed_mapper_node_3.o: src/distributed_mapper_node_3.cpp.o
+
+.PHONY : src/distributed_mapper_node_3.o
+
+# target to build an object file
+src/distributed_mapper_node_3.cpp.o:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/distributed_mapper_node_3.cpp.o
+.PHONY : src/distributed_mapper_node_3.cpp.o
+
+src/distributed_mapper_node_3.i: src/distributed_mapper_node_3.cpp.i
+
+.PHONY : src/distributed_mapper_node_3.i
+
+# target to preprocess a source file
+src/distributed_mapper_node_3.cpp.i:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/distributed_mapper_node_3.cpp.i
+.PHONY : src/distributed_mapper_node_3.cpp.i
+
+src/distributed_mapper_node_3.s: src/distributed_mapper_node_3.cpp.s
+
+.PHONY : src/distributed_mapper_node_3.s
+
+# target to generate assembly for a file
+src/distributed_mapper_node_3.cpp.s:
+	$(MAKE) -f CMakeFiles/distributed_mapper_node_3.dir/build.make CMakeFiles/distributed_mapper_node_3.dir/src/distributed_mapper_node_3.cpp.s
+.PHONY : src/distributed_mapper_node_3.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -628,7 +720,9 @@ help:
 	@echo "... install/strip"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... distributed_mapper_node_2"
 	@echo "... distributed_mapper_node_0"
+	@echo "... distributed_mapper_node_3"
 	@echo "... std_msgs_generate_messages_nodejs"
 	@echo "... std_msgs_generate_messages_lisp"
 	@echo "... install/local"
@@ -670,6 +764,12 @@ help:
 	@echo "... src/distributed_mapper_node_1.o"
 	@echo "... src/distributed_mapper_node_1.i"
 	@echo "... src/distributed_mapper_node_1.s"
+	@echo "... src/distributed_mapper_node_2.o"
+	@echo "... src/distributed_mapper_node_2.i"
+	@echo "... src/distributed_mapper_node_2.s"
+	@echo "... src/distributed_mapper_node_3.o"
+	@echo "... src/distributed_mapper_node_3.i"
+	@echo "... src/distributed_mapper_node_3.s"
 .PHONY : help
 
 
