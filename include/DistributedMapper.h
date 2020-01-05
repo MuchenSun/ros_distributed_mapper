@@ -45,8 +45,9 @@ namespace distributed_mapper{
         /**
          * @brief DistributedMapper constructor
          */
-        DistributedMapper(ros::NodeHandle &nh_, char robotName, std::string robotNames, bool useChrLessFullGraph = false, bool useFlaggedInit = false){
+        DistributedMapper(ros::NodeHandle &nh_, int robotId, char robotName, std::string robotNames, bool useChrLessFullGraph = false, bool useFlaggedInit = false){
             // Config
+            robotId_ = robotId;
             currIter_ = -1;
             currNeighbor_ = robotName;
             currIterReady_ = false;
@@ -117,11 +118,9 @@ namespace distributed_mapper{
 
         void restoreCurrIterReady() {
             currIterReady_ = false;
-//            ROS_INFO_STREAM("Current iteration ready has been restored: " << currIterReady_);
         }
         void restoreNeighborFlags() {
             neighborFlags_ = "";
-//            ROS_INFO_STREAM("Neighbor Flags have been restored: " << neighborFlags_);
         }
 
         ros::Subscriber initializedRequestSubscriber_;
@@ -135,7 +134,9 @@ namespace distributed_mapper{
             if(target == robotName_) {
                 std_msgs::String msg;
                 std::stringstream ss;
-                ss << target << source << isRobotInitialized();
+                ss << target << source;
+                if(isRobotInitialized()) {ss << "1";}
+                else{ss << "0";}
                 msg.data = ss.str();
                 initializedDataPublisher_.publish(msg);
             }
@@ -147,8 +148,10 @@ namespace distributed_mapper{
             // input msg: (source target initialized)
             char source = _initializedDataMsg->data[0];
             char target = _initializedDataMsg->data[1];
-            bool neighboringRobotInitialized = (_initializedDataMsg->data[2]==1);
-//            ROS_INFO_STREAM("neighboringRobotInitialized: " << neighboringRobotInitialized);
+            int flag = boost::lexical_cast<int>(_initializedDataMsg->data[2]);
+            bool neighboringRobotInitialized;
+            if(flag == 1) {neighboringRobotInitialized = true;}
+            else {neighboringRobotInitialized = false;}
             if(target == robotName_) {
                 updateNeighboringRobotInitialized(source, neighboringRobotInitialized);
             }
@@ -160,12 +163,23 @@ namespace distributed_mapper{
             const char *raw_msg = _iterationReadyMsg->data.c_str();
             char sourceName = raw_msg[0];
 
-            if (neighborFlags_.find(sourceName) == std::string::npos) {
-                neighborFlags_ += sourceName;
+//            if (neighborFlags_.find(sourceName) == std::string::npos) {
+//                neighborFlags_ += sourceName;
+//            }
+//            if(neighborFlags_.size() == robotNames_.size()) {
+////                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
+//                currIterReady_ = true;
+//            }
+
+            if(robotId_ == 0) {
+                if(sourceName == robotNames_[robotNames_.size()-1]) {
+                    currIterReady_ = true;
+                }
             }
-            if(neighborFlags_.size() == robotNames_.size()) {
-//                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
-                currIterReady_ = true;
+            else {
+                if(sourceName == robotNames_[robotId_-1]) {
+                    currIterReady_ = true;
+                }
             }
         }
 
@@ -175,9 +189,7 @@ namespace distributed_mapper{
             // input msg: (source target)
             char source = _robotNameMsg->data[0];
             char target = _robotNameMsg->data[1];
-//            ROS_INFO_STREAM("Source: " << source << ", Target: " << target);
             if(target == robotName_) {
-//                ROS_INFO_STREAM("Robot matched");
                 std_msgs::String msg;
                 std::stringstream ss;
                 ss << robotName_ << source << "," << currIter_;
@@ -202,7 +214,6 @@ namespace distributed_mapper{
             char source = vect[0][0];
             char target = vect[0][1];
             int recvCurrIter = boost::lexical_cast<int>(vect[1]);
-//            ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", CurrIter: " << recvCurrIter);
 
             // compare incoming currIter with self
             if(target == robotName_ && source == currNeighbor_ && recvCurrIter == currIter_) {
@@ -236,8 +247,7 @@ namespace distributed_mapper{
             }
             char source = vect[0][0];
             char target = vect[0][1];
-            uint64_t key = boost::lexical_cast<uint64_t>(vect[1]);
-//            ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
 
             // check if this msg is for me
             if(target == robotName_) {
@@ -246,12 +256,10 @@ namespace distributed_mapper{
                 std::stringstream ss2;
                 ss2 << target << source << "," << key;
                 for(size_t i=0; i<rotationEstimates.size(); i++) {
-//                    ROS_INFO_STREAM("rotationEstimates[" << i << "]: " << rotationEstimates[i]);
                     ss2 << "," << rotationEstimates[i];
                 }
                 std_msgs::String msg;
                 msg.data = ss2.str();
-//                ROS_INFO_STREAM("Publishing rotation msg: " << ss2.str());
                 rotationDataPublisher_.publish(msg);
             }
         };
@@ -277,16 +285,17 @@ namespace distributed_mapper{
             }
             char source = vect[0][0];
             char target = vect[0][1];
-            uint64_t key = boost::lexical_cast<uint64_t>(vect[1]);
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+            //ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
 
             if(target == robotName_) {
                 // parse rotationEstimates out
-                Eigen::VectorXd rotationEstimate;
+                //Eigen::VectorXd rotationEstimate;
+                gtsam::Vector rotationEstimate;
                 rotationEstimate.resize(vect.size() - 2);
                 for(size_t iter=2; iter<vect.size(); iter++) {
                     rotationEstimate[iter-2] = boost::lexical_cast<double>(vect[iter]);
                 }
-//                ROS_INFO_STREAM("rotationEstimate: " << rotationEstimate);
                 // update neighbor rotation
                 updateNeighborLinearizedRotations(key, rotationEstimate);
             }
@@ -484,11 +493,9 @@ namespace distributed_mapper{
             // Update the value if symbol already exists
             if(neighborsLinearizedRotations_.exists(key)){
                 neighborsLinearizedRotations_.at(key) = vectorValue;
-//                ROS_INFO_STREAM("case 1");
             }
             else{
                 neighborsLinearizedRotations_.insert(key, vectorValue);
-//                ROS_INFO_STREAM("case 2");
             }
         }
 
@@ -637,7 +644,6 @@ namespace distributed_mapper{
         * @param flag
         */
         void updateNeighboringRobotInitialized(char robot, bool flag){
-//            ROS_INFO_STREAM("case any");
             if(neighboringRobotsInitialized_.find(robot) != neighboringRobotsInitialized_.end()){
                 neighboringRobotsInitialized_.at(robot) = flag;
             }
