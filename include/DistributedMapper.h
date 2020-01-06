@@ -51,6 +51,7 @@ namespace distributed_mapper{
             currIter_ = -1;
             currNeighbor_ = robotName;
             currIterReady_ = false;
+            nextIterReady_ = false;
             neighborFlags_ = "";
             verbosity_ = SILENT;
             robotName_ = robotName;
@@ -85,6 +86,9 @@ namespace distributed_mapper{
             iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
             iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
 
+            iterationNextSubscriber_ = nh_.subscribe<std_msgs::String>("iteration_next", 10, &DistributedMapper::iterationNextCallBack, this);
+            iterationNextPublisher_ = nh_.advertise<std_msgs::String>("iteration_next", 10, true);
+
             currIterRotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_request", 10, &DistributedMapper::currIterRotationRequestCallBack, this);
             currIterRotationRequestPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_request", 10, true);
 
@@ -113,14 +117,30 @@ namespace distributed_mapper{
         size_t currIter_;
         bool currIterCheckFlag_;
         bool currIterReady_;
+        bool nextIterReady_;
         std::string neighborFlags_;
         char currNeighbor_;
 
         void restoreCurrIterReady() {
             currIterReady_ = false;
         }
+        void restoreNextIterReady() {
+            nextIterReady_ = false;
+        }
         void restoreNeighborFlags() {
             neighborFlags_ = "";
+        }
+        void restoreCurrIterCheckFlag() {
+            currIterCheckFlag_ = false;
+        }
+        void initCurrIter() {
+            currIter_ = 0;
+        }
+        void setCurrIter(size_t iter) {
+            currIter_ = iter;
+        }
+        void incCurrIter() {
+            currIter_++;
         }
 
         ros::Subscriber initializedRequestSubscriber_;
@@ -180,6 +200,23 @@ namespace distributed_mapper{
                 if(sourceName == robotNames_[robotId_-1]) {
                     currIterReady_ = true;
                 }
+            }
+        }
+
+        ros::Subscriber iterationNextSubscriber_;
+        ros::Publisher iterationNextPublisher_;
+        void iterationNextCallBack(const std_msgs::StringConstPtr& _iterationNextMsg) {
+            const char *raw_msg = _iterationNextMsg->data.c_str();
+            char sourceName = raw_msg[0];
+
+//            ROS_INFO_STREAM("Robot[" << robotName_ << "] state for next iteration: " << neighborFlags_);
+
+            if (neighborFlags_.find(sourceName) == std::string::npos) {
+                neighborFlags_ += sourceName;
+            }
+            if(neighborFlags_.size() == robotNames_.size()) {
+//                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
+                nextIterReady_ = true;
             }
         }
 
@@ -267,8 +304,32 @@ namespace distributed_mapper{
         ros::Subscriber poseRequestSubscriber_;
         ros::Publisher poseRequestPublisher_;
         void poseRequestCallBack(const std_msgs::StringConstPtr& _poseRequestMsg) {
-            // process
-            // publish
+            // parse
+            std::stringstream ss;
+            ss << _poseRequestMsg->data;
+            std::vector<std::string> vect;
+            while(ss.good()) {
+                std::string substr;
+                getline(ss, substr, ',');
+                vect.push_back(substr);
+            }
+            char source = vect[0][0];
+            char target = vect[0][1];
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+
+            // check if this msg is for this robot
+            if(target == robotName_) {
+                gtsam::Vector poseEstimates = linearizedPosesAt(key);
+                // send rotationEstimates back to source
+                std::stringstream ss2;
+                ss2 << target << source << "," << key;
+                for(size_t i=0; i<poseEstimates.size(); i++) {
+                    ss2 << "," << poseEstimates[i];
+                }
+                std_msgs::String msg;
+                msg.data = ss2.str();
+                poseDataPublisher_.publish(msg);
+            }
         };
 
         ros::Subscriber rotationDataSubscriber_;
@@ -304,7 +365,31 @@ namespace distributed_mapper{
         ros::Subscriber poseDataSubscriber_;
         ros::Publisher poseDataPublisher_;
         void poseDataCallBack(const std_msgs::StringConstPtr& _poseDataMsg) {
-            // process
+            // parse
+            std::stringstream ss;
+            ss << _poseDataMsg->data;
+            std::vector<std::string> vect;
+            while(ss.good()) {
+                std::string substr;
+                getline(ss, substr, ',');
+                vect.push_back(substr);
+            }
+            char source = vect[0][0];
+            char target = vect[0][1];
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+            //ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
+
+            if(target == robotName_) {
+                // parse rotationEstimates out
+                //Eigen::VectorXd rotationEstimate;
+                gtsam::Vector poseEstimate;
+                poseEstimate.resize(vect.size() - 2);
+                for(size_t iter=2; iter<vect.size(); iter++) {
+                    poseEstimate[iter-2] = boost::lexical_cast<double>(vect[iter]);
+                }
+                // update neighbor rotation
+                updateNeighborLinearizedPoses(key, poseEstimate);
+            }
         };
 
         /** Set the flag whether to use landmarks or not */
@@ -695,9 +780,6 @@ namespace distributed_mapper{
         // UpdateType and Gamma
         UpdateType updateType_;
         double gamma_;
-
-        void incCurrIter() {currIter_++;}
-        void initCurrIter() {currIter_ = 0;}
 
 
     protected:

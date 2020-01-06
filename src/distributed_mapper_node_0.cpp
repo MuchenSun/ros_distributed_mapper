@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
             cout << "Optimizing" << endl;
 
         // Rate of checking
-        ros::Rate rate(20);
+        ros::Rate rate(2);
 
         // Distributed Estimate
         if (!disconnectedGraph) { // this means this robot is communicating ?
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
                 distMapper->setFlaggedInit(useFlaggedInit);
                 distMapper->setUpdateType(updateType);
                 distMapper->setGamma(gamma);
-                distMapper->initCurrIter(); // distMapper->currIter_: -1 -> 0
+//                distMapper->initCurrIter(); // distMapper->currIter_: -1 -> 0
 
                 /* Optimize rotation */
                 // Before starting no robot is optimized
@@ -301,7 +301,18 @@ int main(int argc, char* argv[]) {
 
                 // Iterations
                 ROS_INFO_STREAM("Maximaum Iteration: " << maxIter);
+                distMapper->initCurrIter();
                 for (size_t iter = 0; iter < 10 && ros::ok(); iter++) {
+                    // update currIter_
+                    distMapper->setCurrIter(iter);
+
+                    distMapper->restoreNextIterReady();
+                    // clear neighborFlags
+                    distMapper->restoreNeighborFlags();
+
+                    // log
+                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << ": " << distMapper->currIter_);
+
                     // before optimization/ goes into next iteration, check if all neighbors are ready
                     while(distMapper->currIterReady_ == false && ros::ok()) {
                         if(iter==0 && robot==0) {break;}
@@ -314,13 +325,8 @@ int main(int argc, char* argv[]) {
                         //rate.sleep();
                         ros::spinOnce();
                     }
-
-                    // update currIter_
-                    distMapper->currIter_ = iter;
                     // reset ready flag for current iteration
                     distMapper->restoreCurrIterReady();
-                    // clear neighborFlags
-                    distMapper->restoreNeighborFlags();
 
                     // ask other robots for updated estimates and update it
                     for (const gtsam::Values::ConstKeyValuePair &key_value: distMapper->neighbors()) {
@@ -330,30 +336,30 @@ int main(int argc, char* argv[]) {
                         char symbol = gtsam::symbolChr(key);
                         if (useLandmarks) { symbol = tolower(symbol); }
                         size_t neighboringRobotId = distMapper->robotNames().find(symbol);
-                        distMapper->currIterCheckFlag_ = false;
+                        distMapper->restoreCurrIterCheckFlag();
                         if (neighboringRobotId != std::string::npos) {
                             distMapper->currNeighbor_ = symbol;
-//                            while(distMapper->currIterCheckFlag_ == false && ros::ok()) { // make sure this neighbor is ready
-//                                // communication
-//                                // first, ask for the current iteration of this neighbor
-//                                ss.str("");
-//                                ss << distMapper->robotName() << symbol;
-//                                std_msgs::String curr_iter_rotation_request;
-//                                curr_iter_rotation_request.data = ss.str();
-//                                distMapper->currIterRotationRequestPublisher_.publish(curr_iter_rotation_request);
-//                                ROS_INFO_STREAM("current rotation iteration request published.");
-//
-//                                //rate.sleep();
-//                                ros::spinOnce();
-//                            }
+                            while(distMapper->currIterCheckFlag_ == false && ros::ok()) { // make sure this neighbor is ready
+                                // communication
+                                // first, ask for the current iteration of this neighbor
+                                std::stringstream ss9;
+                                ss9 << distMapper->robotName() << symbol;
+                                std_msgs::String curr_iter_rotation_request1;
+                                curr_iter_rotation_request1.data = ss9.str();
+                                distMapper->currIterRotationRequestPublisher_.publish(curr_iter_rotation_request1);
+                                //ROS_INFO_STREAM("current rotation iteration request published.");
 
-//                            ss.str("");
-//                            ss << distMapper->robotName() << symbol;
-//                            std_msgs::String curr_iter_rotation_request;
-//                            curr_iter_rotation_request.data = ss.str();
-//                            distMapper->currIterRotationRequestPublisher_.publish(curr_iter_rotation_request);
+                                //rate.sleep();
+                                ros::spinOnce();
+                            }
 //
-//                            distMapper->currIterCheckFlag_ = false; // restore default value
+//                            std::stringstream ss10;
+//                            ss10 << distMapper->robotName() << symbol;
+//                            std_msgs::String curr_iter_rotation_request2;
+//                            curr_iter_rotation_request2.data = ss10.str();
+//                            distMapper->currIterRotationRequestPublisher_.publish(curr_iter_rotation_request2);
+
+                            distMapper->restoreCurrIterCheckFlag();
 
                             // request roation data from the neighbor
                             std::stringstream ss1;
@@ -394,6 +400,17 @@ int main(int argc, char* argv[]) {
                     iteration_ready_msg.data = ss3.str();
                     distMapper->iterationReadyPublisher_.publish(iteration_ready_msg);
 
+                    // before goes into next iteration, check if all neighbors are ready
+                    while(distMapper->nextIterReady_ == false && ros::ok()) {
+                        std::stringstream ss11;
+                        ss11 << distMapper->robotName();
+                        std_msgs::String iteration_next_msg;
+                        iteration_next_msg.data = ss11.str();
+                        distMapper->iterationNextPublisher_.publish(iteration_next_msg);
+
+                        ros::spinOnce();
+                    }
+
                     //rate.sleep();
                     ros::spinOnce();
                 }
@@ -414,6 +431,7 @@ int main(int argc, char* argv[]) {
 
                 // update neighboring values
                 while(distMapper->currIterReady_ == false && ros::ok()) { ros::spinOnce(); }
+                distMapper->restoreCurrIterReady();
                 gtsam::Values neighbors = distMapper->neighbors();
                 for(const gtsam::Values::ConstKeyValuePair& key_value: neighbors){
                     gtsam::Key key = key_value.key;
@@ -427,16 +445,99 @@ int main(int argc, char* argv[]) {
                     distMapper->updateNeighbor(key, poseEstimateNeighbor.at<gtsam::Pose3>(key));
                 }
 
-                std::stringstream ss5;
-                ss5 << distMapper->robotName();
-                std_msgs::String neighbor_updated_msg;
-                neighbor_updated_msg.data = ss5.str();
-                distMapper->iterationReadyPublisher_.publish(neighbor_updated_msg);
-
                 ROS_INFO_STREAM("Converted rotation to poses");
                 multirobot_util::printKeys(distMapper->currentEstimate());
 
-                /* iterate poses */
+//                std::stringstream ss5;
+//                ss5 << distMapper->robotName();
+//                std_msgs::String neighbor_updated_msg;
+//                neighbor_updated_msg.data = ss5.str();
+//                distMapper->iterationReadyPublisher_.publish(neighbor_updated_msg);
+//
+//                while(distMapper->currIterReady_ == false && ros::ok()) { ros::spinOnce(); }
+////                distMapper->restoreCurrIterReady();
+//
+//                /* iterate poses */
+//                // Before starting no robot is optimized
+//                distMapper->updateInitialized(false);
+//                distMapper->clearNeighboringRobotInit();
+//
+//                // reset ready flag for current iteration
+//                if(robot != 0) {distMapper->restoreCurrIterReady();}
+//                // clear neighborFlags
+//                distMapper->restoreNeighborFlags();
+//
+//                // Iterations
+//                ROS_INFO_STREAM("Maximaum Iteration: " << maxIter);
+//                for (size_t iter = 0; iter < 10 && ros::ok(); iter++) {
+//                    // before optimization/ goes into next iteration, check if all neighbors are ready
+//                    while(distMapper->currIterReady_ == false && ros::ok()) {
+////                        if(iter==0 && robot==0) {break;}
+//                        ros::spinOnce();
+//                    }
+//
+//                    // update currIter_
+//                    distMapper->currIter_ = iter;
+//                    // reset ready flag for current iteration
+//                    distMapper->restoreCurrIterReady();
+//                    // clear neighborFlags
+//                    distMapper->restoreNeighborFlags();
+//
+//                    // ask other robots for updated estimates and update it
+//                    for (const gtsam::Values::ConstKeyValuePair &key_value: distMapper->neighbors()) {
+//                        gtsam::Key key = key_value.key;
+//                        // the robot is currently communicating, so we check if the neighbor keys
+//                        // are from one of these robots
+//                        char symbol = gtsam::symbolChr(key);
+//                        if (useLandmarks) { symbol = tolower(symbol); }
+//                        size_t neighboringRobotId = distMapper->robotNames().find(symbol);
+//                        distMapper->currIterCheckFlag_ = false;
+//                        if (neighboringRobotId != std::string::npos) {
+//                            distMapper->currNeighbor_ = symbol;
+//                            // request pose data from the neighbor
+//                            std::stringstream ss6;
+//                            ss6 << distMapper->robotName() << symbol << "," << key;
+//                            std_msgs::String pose_request;
+//                            pose_request.data = ss6.str();
+//                            distMapper->poseRequestPublisher_.publish(pose_request);
+//
+//                            // request initialized flag from neighbor
+//                            std::stringstream ss7;
+//                            ss7.str("");
+//                            ss7 << distMapper->robotName() << symbol;
+//                            std_msgs::String initialized_request2;
+//                            initialized_request2.data = ss7.str();
+//                            distMapper->initializedRequestPublisher_.publish(initialized_request2);
+//
+//                            // goes to next iteration
+//                            //rate.sleep();
+//                            ros::spinOnce();
+//                        } else {
+//                            // others, set neighbor as initialized
+//                            distMapper->updateNeighboringRobotInitialized(symbol, true);
+//
+//                            //rate.sleep();
+//                            ros::spinOnce();
+//                        }
+//                    }
+//
+//                    /* optimization */
+//                    distMapper->estimatePoses();
+//                    distMapper->updateInitialized(true);
+//                    if(distMapper->updateType_ == DistributedMapper::incUpdate) {distMapper->updatePoses();} //TODO: implement
+//
+//                    // let next node start
+//                    std::stringstream ss8;
+//                    ss8 << distMapper->robotName();
+//                    std_msgs::String iteration_ready_msg2;
+//                    iteration_ready_msg2.data = ss8.str();
+//                    distMapper->iterationReadyPublisher_.publish(iteration_ready_msg2);
+//
+//                    rate.sleep();
+//                    ros::spinOnce();
+//                }
+//
+//                ROS_INFO_STREAM("Pose Optimization Finished.");
 
 //            //////////////////////////////////////////////////////////////////////////
 //            // Here we first pretend there is "estimates"

@@ -282,6 +282,7 @@ DistributedMapper::estimatePoses(){
     }
 
     double error = distGFG.error(newLinearizedPoses_);
+    ROS_INFO_STREAM("[optimizePose] " << robotName_ << ", error: " << error);
     poseErrorTrace_.push_back(error);
   }
 }
