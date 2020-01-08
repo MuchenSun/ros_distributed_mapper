@@ -413,6 +413,13 @@ int main(int argc, char* argv[]) {
                 // update neighboring values
                 while(distMapper->currIterReady_ == false && ros::ok()) { ros::spinOnce(); }
                 distMapper->restoreCurrIterReady();
+
+                std::stringstream ss5;
+                ss5 << distMapper->robotName();
+                std_msgs::String neighbor_updated_msg;
+                neighbor_updated_msg.data = ss5.str();
+                distMapper->iterationReadyPublisher_.publish(neighbor_updated_msg);
+
                 gtsam::Values neighbors = distMapper->neighbors();
                 for(const gtsam::Values::ConstKeyValuePair& key_value: neighbors){
                     gtsam::Key key = key_value.key;
