@@ -51,7 +51,8 @@ namespace distributed_mapper{
             currIter_ = -1;
             currNeighbor_ = robotName;
             currIterReady_ = false;
-            nextIterReady_ = false;
+            startReady_ = false;
+            currMsgRecv_ = false;
             neighborFlags_ = "";
             verbosity_ = SILENT;
             robotName_ = robotName;
@@ -77,6 +78,12 @@ namespace distributed_mapper{
             latestChange_ = DBL_MAX;
 
             // Initialize communication configurations
+            startReadySubscriber_ = nh_.subscribe<std_msgs::String>("start_ready", 10, &DistributedMapper::startReadyCallBack, this);
+            startReadyPublisher_ = nh_.advertise<std_msgs::String>("start_ready", 10, true);
+
+            iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
+            iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
+
             initializedRequestSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_request", 10, &DistributedMapper::initializedRequestCallBack, this);
             initializedRequestPublisher_ = nh_.advertise<std_msgs::String>("initialized_request", 10, true);
 
@@ -85,22 +92,7 @@ namespace distributed_mapper{
 
             iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
             iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
-
-            iterationNextSubscriber_ = nh_.subscribe<std_msgs::String>("iteration_next", 10, &DistributedMapper::iterationNextCallBack, this);
-            iterationNextPublisher_ = nh_.advertise<std_msgs::String>("iteration_next", 10, true);
-
-            currIterRotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_request", 10, &DistributedMapper::currIterRotationRequestCallBack, this);
-            currIterRotationRequestPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_request", 10, true);
-
-            currIterRotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("current_rotation_iteration_data", 10, &DistributedMapper::currIterRotationDataCallBack, this);
-            currIterRotationDataPublisher_ = nh_.advertise<std_msgs::String>("current_rotation_iteration_data", 10, true);
-
-            currIterPoseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("current_pose_iteration_request", 10, &DistributedMapper::currIterPoseRequestCallBack, this);
-            currIterPoseRequestPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_request", 10, true);
-
-            currIterPoseDataSubscriber_ = nh_.subscribe<std_msgs::String>("current_pose_iteration_data", 10, &DistributedMapper::currIterPoseDataCallBack, this);
-            currIterPoseDataPublisher_ = nh_.advertise<std_msgs::String>("current_pose_iteration_data", 10, true);
-
+            
             rotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_request", 10, &DistributedMapper::rotationRequestCallBack, this);
             rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("rotation_request", 10, true);
 
@@ -115,23 +107,26 @@ namespace distributed_mapper{
         }
 
         size_t currIter_;
-        bool currIterCheckFlag_;
         bool currIterReady_;
-        bool nextIterReady_;
+        bool startReady_;
+        bool currMsgRecv_;
         std::string neighborFlags_;
         char currNeighbor_;
+        size_t currMsgId_;
+
+        void setCurrMsgRecv(bool flag) {
+            currMsgRecv_ = flag;
+        }
+
+        void setCurrMsgId(size_t msg_id) {
+            currMsgId_ = msg_id;
+        }
 
         void restoreCurrIterReady() {
             currIterReady_ = false;
         }
-        void restoreNextIterReady() {
-            nextIterReady_ = false;
-        }
         void restoreNeighborFlags() {
             neighborFlags_ = "";
-        }
-        void restoreCurrIterCheckFlag() {
-            currIterCheckFlag_ = false;
         }
         void initCurrIter() {
             currIter_ = 0;
@@ -143,38 +138,20 @@ namespace distributed_mapper{
             currIter_++;
         }
 
-        ros::Subscriber initializedRequestSubscriber_;
-        ros::Publisher initializedRequestPublisher_;
-        void initializedRequestCallBack(const std_msgs::StringConstPtr& _initializedRequestMsg) {
-            // process
-            // input msg: (source target)
-            char source = _initializedRequestMsg->data[0];
-            char target = _initializedRequestMsg->data[1];
+        ros::Subscriber startReadySubscriber_;
+        ros::Publisher startReadyPublisher_;
+        void startReadyCallBack(const std_msgs::StringConstPtr& _startReadyMsg) {
+            const char *raw_msg = _startReadyMsg->data.c_str();
+            char sourceName = raw_msg[0];
 
-            if(target == robotName_) {
-                std_msgs::String msg;
-                std::stringstream ss;
-                ss << target << source;
-                if(isRobotInitialized()) {ss << "1";}
-                else{ss << "0";}
-                msg.data = ss.str();
-                initializedDataPublisher_.publish(msg);
+            if (neighborFlags_.find(sourceName) == std::string::npos) {
+                neighborFlags_ += sourceName;
             }
-        }
+            if(neighborFlags_.size() == robotNames_.size()) {
+                startReady_ = true;
+            }
 
-        ros::Subscriber initializedDataSubscriber_;
-        ros::Publisher initializedDataPublisher_;
-        void initializedDataCallBack(const std_msgs::StringConstPtr& _initializedDataMsg) {
-            // input msg: (source target initialized)
-            char source = _initializedDataMsg->data[0];
-            char target = _initializedDataMsg->data[1];
-            int flag = boost::lexical_cast<int>(_initializedDataMsg->data[2]);
-            bool neighboringRobotInitialized;
-            if(flag == 1) {neighboringRobotInitialized = true;}
-            else {neighboringRobotInitialized = false;}
-            if(target == robotName_) {
-                updateNeighboringRobotInitialized(source, neighboringRobotInitialized);
-            }
+//            ROS_INFO_STREAM(robotName_ << ": " << neighborFlags_);
         }
 
         ros::Subscriber iterationReadySubscriber_;
@@ -182,15 +159,6 @@ namespace distributed_mapper{
         void iterationReadyCallBack(const std_msgs::StringConstPtr& _iterationReadyMsg) {
             const char *raw_msg = _iterationReadyMsg->data.c_str();
             char sourceName = raw_msg[0];
-
-//            if (neighborFlags_.find(sourceName) == std::string::npos) {
-//                neighborFlags_ += sourceName;
-//            }
-//            if(neighborFlags_.size() == robotNames_.size()) {
-////                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
-//                currIterReady_ = true;
-//            }
-
             if(robotId_ == 0) {
                 if(sourceName == robotNames_[robotNames_.size()-1]) {
                     currIterReady_ = true;
@@ -203,72 +171,60 @@ namespace distributed_mapper{
             }
         }
 
-        ros::Subscriber iterationNextSubscriber_;
-        ros::Publisher iterationNextPublisher_;
-        void iterationNextCallBack(const std_msgs::StringConstPtr& _iterationNextMsg) {
-            const char *raw_msg = _iterationNextMsg->data.c_str();
-            char sourceName = raw_msg[0];
-
-//            ROS_INFO_STREAM("Robot[" << robotName_ << "] state for next iteration: " << neighborFlags_);
-
-            if (neighborFlags_.find(sourceName) == std::string::npos) {
-                neighborFlags_ += sourceName;
-            }
-            if(neighborFlags_.size() == robotNames_.size()) {
-//                ROS_INFO_STREAM("Robot[" << robotName_ << "] ready for next iteration: " << neighborFlags_);
-                nextIterReady_ = true;
-            }
-        }
-
-        ros::Subscriber currIterRotationRequestSubscriber_;
-        ros::Publisher currIterRotationRequestPublisher_;
-        void currIterRotationRequestCallBack(const std_msgs::StringConstPtr& _robotNameMsg) {
-            // input msg: (source target)
-            char source = _robotNameMsg->data[0];
-            char target = _robotNameMsg->data[1];
-            if(target == robotName_) {
-                std_msgs::String msg;
-                std::stringstream ss;
-                ss << robotName_ << source << "," << currIter_;
-                msg.data = ss.str();
-                currIterRotationDataPublisher_.publish(msg);
-            }
-        };
-
-        ros::Subscriber currIterRotationDataSubscriber_;
-        ros::Publisher currIterRotationDataPublisher_;
-        void currIterRotationDataCallBack(const std_msgs::StringConstPtr& _currIterMsg) {
-//            ROS_INFO_STREAM("Receive: current rotation iteration data msg.");
-            // parse msg
+        ros::Subscriber initializedRequestSubscriber_;
+        ros::Publisher initializedRequestPublisher_;
+        void initializedRequestCallBack(const std_msgs::StringConstPtr& _initializedRequestMsg) {
+            // process
             std::stringstream ss;
-            ss << _currIterMsg->data;
+            ss << _initializedRequestMsg->data;
             std::vector<std::string> vect;
             while(ss.good()) {
                 std::string substr;
                 getline(ss, substr, ',');
                 vect.push_back(substr);
             }
-            char source = vect[0][0];
-            char target = vect[0][1];
-            int recvCurrIter = boost::lexical_cast<int>(vect[1]);
+            size_t msg_id = boost::lexical_cast<size_t>(vect[0]);
+            char source = vect[1][0];
+            char target = vect[1][1];
 
-            // compare incoming currIter with self
-            if(target == robotName_ && source == currNeighbor_ && recvCurrIter == currIter_) {
-                currIterCheckFlag_ = true;
+            if(target == robotName_) {
+                std_msgs::String msg;
+                std::stringstream ss;
+                ss << msg_id << "," << target << source;
+                if(isRobotInitialized()) {ss << "1";}
+                else{ss << "0";}
+                msg.data = ss.str();
+                initializedDataPublisher_.publish(msg);
             }
-        };
+        }
 
-        ros::Subscriber currIterPoseRequestSubscriber_;
-        ros::Publisher currIterPoseRequestPublisher_;
-        void currIterPoseRequestCallBack(const std_msgs::StringConstPtr& _currIterMsg) {
-            // process
-        };
+        ros::Subscriber initializedDataSubscriber_;
+        ros::Publisher initializedDataPublisher_;
+        void initializedDataCallBack(const std_msgs::StringConstPtr& _initializedDataMsg) {
+            // input msg: (source target initialized)
+            std::stringstream ss;
+            ss << _initializedDataMsg->data;
+            std::vector<std::string> vect;
+            while(ss.good()) {
+                std::string substr;
+                getline(ss, substr, ',');
+                vect.push_back(substr);
+            }
+            size_t msg_id = boost::lexical_cast<size_t>(vect[0]);
+            char source = vect[1][0];
+            char target = vect[1][1];
+            int flag = boost::lexical_cast<int>(vect[1][2]);
+            bool neighboringRobotInitialized;
+            if(flag == 1) {neighboringRobotInitialized = true;}
+            else {neighboringRobotInitialized = false;}
+            if(target == robotName_) {
+                updateNeighboringRobotInitialized(source, neighboringRobotInitialized);
 
-        ros::Subscriber currIterPoseDataSubscriber_;
-        ros::Publisher currIterPoseDataPublisher_;
-        void currIterPoseDataCallBack(const std_msgs::StringConstPtr& _currIterMsg) {
-            // process
-        };
+                if(msg_id == currMsgId_) {
+                    currMsgRecv_ = true;
+                }
+            }
+        }
 
         ros::Subscriber rotationRequestSubscriber_;
         ros::Publisher rotationRequestPublisher_;
@@ -282,16 +238,17 @@ namespace distributed_mapper{
                 getline(ss, substr, ',');
                 vect.push_back(substr);
             }
-            char source = vect[0][0];
-            char target = vect[0][1];
-            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+            size_t msg_id = boost::lexical_cast<size_t>(vect[0]);
+            char source = vect[1][0];
+            char target = vect[1][1];
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[2]);
 
             // check if this msg is for me
             if(target == robotName_) {
                 gtsam::Vector rotationEstimates = linearizedRotationAt(key);
                 // send rotationEstimates back to source
                 std::stringstream ss2;
-                ss2 << target << source << "," << key;
+                ss2 << msg_id << "," << target << source << "," << key;
                 for(size_t i=0; i<rotationEstimates.size(); i++) {
                     ss2 << "," << rotationEstimates[i];
                 }
@@ -344,21 +301,28 @@ namespace distributed_mapper{
                 getline(ss, substr, ',');
                 vect.push_back(substr);
             }
-            char source = vect[0][0];
-            char target = vect[0][1];
-            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+            size_t msg_id = boost::lexical_cast<size_t>(vect[0]);
+            char source = vect[1][0];
+            char target = vect[1][1];
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[2]);
             //ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
 
             if(target == robotName_) {
+                ROS_INFO_STREAM("rotation data at iter[" << currIter_ << "]: " << _rotationDataMsg->data);
+
                 // parse rotationEstimates out
                 //Eigen::VectorXd rotationEstimate;
                 gtsam::Vector rotationEstimate;
-                rotationEstimate.resize(vect.size() - 2);
-                for(size_t iter=2; iter<vect.size(); iter++) {
-                    rotationEstimate[iter-2] = boost::lexical_cast<double>(vect[iter]);
+                rotationEstimate.resize(vect.size() - 3);
+                for(size_t iter=3; iter<vect.size(); iter++) {
+                    rotationEstimate[iter-3] = boost::lexical_cast<double>(vect[iter]);
                 }
                 // update neighbor rotation
                 updateNeighborLinearizedRotations(key, rotationEstimate);
+
+                if(msg_id == currMsgId_) {
+                    currMsgRecv_ = true;
+                }
             }
         };
 
