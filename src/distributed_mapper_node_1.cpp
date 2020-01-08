@@ -342,6 +342,8 @@ int main(int argc, char* argv[]) {
                         if (neighboringRobotId != std::string::npos) {
                             // assign curr_msg_id
                             distMapper->setCurrMsgId(msg_id);
+//                            ROS_INFO_STREAM("msg_id: " << msg_id);
+                            distMapper->setCurrMsgRecv(false);
 
                             // request roation data from the neighbor
                             while(distMapper->currMsgRecv_ == false && ros::ok()) {
@@ -377,7 +379,7 @@ int main(int argc, char* argv[]) {
                     }
 
                     /* optimization */
-                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << " about to start optimization at iteration: " << distMapper->currIter_);
+//                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << " about to start optimization at iteration: " << distMapper->currIter_);
                     distMapper->estimateRotation();
                     distMapper->updateInitialized(true);
                     if(distMapper->updateType_ == DistributedMapper::incUpdate) {distMapper->updateRotation();} //TODO: implement a postUpdate version

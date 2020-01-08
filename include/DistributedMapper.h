@@ -308,7 +308,7 @@ namespace distributed_mapper{
             //ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
 
             if(target == robotName_) {
-                ROS_INFO_STREAM("rotation data at iter[" << currIter_ << "]: " << _rotationDataMsg->data);
+//                ROS_INFO_STREAM("rotation data at iter[" << currIter_ << "]: " << _rotationDataMsg->data);
 
                 // parse rotationEstimates out
                 //Eigen::VectorXd rotationEstimate;

@@ -342,6 +342,8 @@ int main(int argc, char* argv[]) {
                         if (neighboringRobotId != std::string::npos) {
                             // assign curr_msg_id
                             distMapper->setCurrMsgId(msg_id);
+//                            ROS_INFO_STREAM("msg_id: " << msg_id);
+                            distMapper->setCurrMsgRecv(false);
 
                             // request roation data from the neighbor
                             while(distMapper->currMsgRecv_ == false && ros::ok()) {
