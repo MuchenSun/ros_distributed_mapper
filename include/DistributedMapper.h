@@ -122,6 +122,9 @@ namespace distributed_mapper{
             currMsgId_ = msg_id;
         }
 
+        void setStartReady(bool flag) {
+            startReady_ = flag;
+        }
         void restoreCurrIterReady() {
             currIterReady_ = false;
         }
@@ -270,21 +273,23 @@ namespace distributed_mapper{
                 getline(ss, substr, ',');
                 vect.push_back(substr);
             }
-            char source = vect[0][0];
-            char target = vect[0][1];
-            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+            size_t msg_id = boost::lexical_cast<size_t>(vect[0]);
+            char source = vect[1][0];
+            char target = vect[1][1];
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[2]);
 
-            // check if this msg is for this robot
+            // check if this msg is for me
             if(target == robotName_) {
                 gtsam::Vector poseEstimates = linearizedPosesAt(key);
                 // send rotationEstimates back to source
                 std::stringstream ss2;
-                ss2 << target << source << "," << key;
+                ss2 << msg_id << "," << target << source << "," << key;
                 for(size_t i=0; i<poseEstimates.size(); i++) {
                     ss2 << "," << poseEstimates[i];
                 }
                 std_msgs::String msg;
                 msg.data = ss2.str();
+//                ROS_INFO_STREAM("Robot " << robotName_ << " about to send pose data: " << ss2.str());
                 poseDataPublisher_.publish(msg);
             }
         };
@@ -338,21 +343,28 @@ namespace distributed_mapper{
                 getline(ss, substr, ',');
                 vect.push_back(substr);
             }
-            char source = vect[0][0];
-            char target = vect[0][1];
-            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[1]);
+            size_t msg_id = boost::lexical_cast<size_t>(vect[0]);
+            char source = vect[1][0];
+            char target = vect[1][1];
+            gtsam::Key key = boost::lexical_cast<uint64_t>(vect[2]);
             //ROS_INFO_STREAM("Source: " << source << ", Target: " << target << ", Key: " << key);
 
             if(target == robotName_) {
+//                ROS_INFO_STREAM("pose data at iter[" << currIter_ << "]: " << _poseDataMsg->data);
+
                 // parse rotationEstimates out
                 //Eigen::VectorXd rotationEstimate;
                 gtsam::Vector poseEstimate;
-                poseEstimate.resize(vect.size() - 2);
-                for(size_t iter=2; iter<vect.size(); iter++) {
-                    poseEstimate[iter-2] = boost::lexical_cast<double>(vect[iter]);
+                poseEstimate.resize(vect.size() - 3);
+                for(size_t iter=3; iter<vect.size(); iter++) {
+                    poseEstimate[iter-3] = boost::lexical_cast<double>(vect[iter]);
                 }
                 // update neighbor rotation
                 updateNeighborLinearizedPoses(key, poseEstimate);
+
+                if(msg_id == currMsgId_) {
+                    currMsgRecv_ = true;
+                }
             }
         };
 
