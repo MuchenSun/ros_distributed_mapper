@@ -53,6 +53,7 @@ namespace distributed_mapper{
             currIterReady_ = false;
             startReady_ = false;
             currMsgRecv_ = false;
+            breakFlag_ = false;
             neighborFlags_ = "";
             verbosity_ = SILENT;
             robotName_ = robotName;
@@ -84,6 +85,9 @@ namespace distributed_mapper{
             iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
             iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
 
+            quitSignalSubscriber_ = nh_.subscribe<std_msgs::String>("quit_signal", 10, &DistributedMapper::quitSignalCallBack, this);
+            quitSignalPublisher_ = nh_.advertise<std_msgs::String>("quit_signal", true);
+
             initializedRequestSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_request", 10, &DistributedMapper::initializedRequestCallBack, this);
             initializedRequestPublisher_ = nh_.advertise<std_msgs::String>("initialized_request", 10, true);
 
@@ -111,34 +115,34 @@ namespace distributed_mapper{
         bool startReady_;
         bool currMsgRecv_;
         std::string neighborFlags_;
+        std::string quitTable_;
         char currNeighbor_;
         size_t currMsgId_;
+        bool breakFlag_;
 
-        void setCurrMsgRecv(bool flag) {
-            currMsgRecv_ = flag;
-        }
+        void setCurrMsgRecv(bool flag) { currMsgRecv_ = flag; }
+        void setCurrMsgId(size_t msg_id) { currMsgId_ = msg_id; }
+        void setStartReady(bool flag) { startReady_ = flag; }
+        void restoreCurrIterReady() { currIterReady_ = false; }
+        void restoreNeighborFlags() { neighborFlags_ = ""; }
+        void restoreQuitTable() { quitTable_ = ""; }
+        void initCurrIter() { currIter_ = 0; }
+        void setCurrIter(size_t iter) { currIter_ = iter; }
+        //void incCurrIter() { currIter_++; }
+        void setBreakFlag(bool flag) { breakFlag_ = flag; }
 
-        void setCurrMsgId(size_t msg_id) {
-            currMsgId_ = msg_id;
-        }
-
-        void setStartReady(bool flag) {
-            startReady_ = flag;
-        }
-        void restoreCurrIterReady() {
-            currIterReady_ = false;
-        }
-        void restoreNeighborFlags() {
-            neighborFlags_ = "";
-        }
-        void initCurrIter() {
-            currIter_ = 0;
-        }
-        void setCurrIter(size_t iter) {
-            currIter_ = iter;
-        }
-        void incCurrIter() {
-            currIter_++;
+        ros::Subscriber quitSignalSubscriber_;
+        ros::Publisher quitSignalPublisher_;
+        void quitSignalCallBack(const std_msgs::StringConstPtr& _quitSignal) {
+            if(_quitSignal->data.size() == 4) {
+                ROS_INFO_STREAM("Hey !!! Time to quit!");
+                breakFlag_ = true;
+            } else {
+                const char *raw_msg = _quitSignal->data.c_str();
+                char sourceName = raw_msg[0];
+//                ROS_INFO_STREAM("sourceName: " << sourceName);
+                if (quitTable_.find(sourceName) == std::string::npos) { quitTable_ += sourceName; }
+            }
         }
 
         ros::Subscriber startReadySubscriber_;

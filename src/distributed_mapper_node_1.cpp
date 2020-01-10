@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
             cout << "Optimizing" << endl;
 
         // Rate of checking
-        ros::Rate rate(0.5);
+        ros::Rate rate(1);
 
         // Distributed Estimate
         if (!disconnectedGraph) { // this means this robot is communicating ?
@@ -450,6 +450,8 @@ int main(int argc, char* argv[]) {
                 distMapper->restoreNeighborFlags();
                 // init current iteration number
                 distMapper->initCurrIter();
+                // reset breakFlag
+                distMapper->setBreakFlag(false);
 
                 // Before start iteration, make sure all neighbors are ready to start
                 while(!distMapper->startReady_ && ros::ok()) {
@@ -476,12 +478,27 @@ int main(int argc, char* argv[]) {
                     // log
 //                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << ": " << distMapper->currIter_);
 
+                    bool stop;
+                    stop = false;
                     // before starting optimization, check if all neighbors are ready for current iteration
                     while(distMapper->currIterReady_ == false && ros::ok()) {
+                        //ROS_INFO_STREAM("Robot b - breakFlag: " << distMapper->breakFlag_);
                         if(iter==0 && robot==0) {break;}
-                        //rate.sleep();
+                        if(distMapper->breakFlag_ == true) {
+//                            ROS_INFO_STREAM("ready to quit iteration loop");
+                            stop=true;
+                            break;
+                        }
                         ros::spinOnce();
                     }
+                    if(stop == true) {
+//                        ROS_INFO_STREAM("Here?");
+                        break;
+                    }
+                    // restore quit table for this iteration immediately
+                    // only first node would use quitTable, this step in other nodes
+                    // is to save memory space
+                    distMapper->restoreQuitTable();
                     // reset flag immediately
                     distMapper->restoreCurrIterReady();
 
@@ -543,6 +560,16 @@ int main(int argc, char* argv[]) {
                     std_msgs::String iteration_ready_msg;
                     iteration_ready_msg.data = ss13.str();
                     distMapper->iterationReadyPublisher_.publish(iteration_ready_msg);
+
+                    // evaluate latest change and decide whether to quit iteration
+                    double change = distMapper->latestChange();
+                    if(change < poseEstimateChangeThreshold) {
+                        std::stringstream change_ss;
+                        change_ss << distMapper->robotName();
+                        std_msgs::String quit_msg;
+                        quit_msg.data = change_ss.str();
+                        distMapper->quitSignalPublisher_.publish(quit_msg);
+                    }
 
 
                     rate.sleep();
