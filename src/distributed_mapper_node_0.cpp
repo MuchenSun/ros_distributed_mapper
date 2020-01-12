@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
 
         // Rate of checking
 //        ros::Rate rate(10);
-        ros::Rate rate(0.2);
+        ros::Rate rate(2);
 
         // Distributed Estimate
         if (!disconnectedGraph) { // this means this robot is communicating ?
@@ -416,12 +416,6 @@ int main(int argc, char* argv[]) {
                 while(distMapper->currIterReady_ == false && ros::ok()) { ros::spinOnce(); }
                 distMapper->restoreCurrIterReady();
 
-                std::stringstream ss5;
-                ss5 << distMapper->robotName();
-                std_msgs::String neighbor_updated_msg;
-                neighbor_updated_msg.data = ss5.str();
-                distMapper->iterationReadyPublisher_.publish(neighbor_updated_msg);
-
                 for(const gtsam::Values::ConstKeyValuePair& key_value: distMapper->neighbors()){
                     gtsam::Key key_t = key_value.key;
                     // pick linear rotation estimate from *robot*
@@ -452,19 +446,27 @@ int main(int argc, char* argv[]) {
                 distMapper->initCurrIter();
 
                 // Before start iteration, make sure all neighbors are ready to start
-                distMapper->setStartReadyRecvFlag(true);
-                while(!distMapper->startReady_ && ros::ok()) {
-                    std_msgs::String start_ready_msg3;
-                    start_ready_msg3.data = distMapper->robotName();
-                    distMapper->startReadyPublisher_.publish(start_ready_msg3);
-                    ros::spinOnce();
-                }
-                // reset flag immediately
-                distMapper->setStartReady(false);
-                // send start_ready information for one more time
-                std_msgs::String start_ready_msg4;
-                start_ready_msg4.data = distMapper->robotName();
-                distMapper->startReadyPublisher_.publish(start_ready_msg4);
+//                distMapper->setStartReadyRecvFlag(true);
+//                while(!distMapper->startReady_ && ros::ok()) {
+//                    std_msgs::String start_ready_msg3;
+//                    start_ready_msg3.data = distMapper->robotName();
+//                    distMapper->startReadyPublisher_.publish(start_ready_msg3);
+//                    ros::spinOnce();
+//                }
+//                // reset flag immediately
+//                distMapper->setStartReady(false);
+//                // send start_ready information for one more time
+//                std_msgs::String start_ready_msg4;
+//                start_ready_msg4.data = distMapper->robotName();
+//                distMapper->startReadyPublisher_.publish(start_ready_msg4);
+
+                rate.sleep();
+
+                std::stringstream ss5;
+                ss5 << distMapper->robotName();
+                std_msgs::String neighbor_updated_msg;
+                neighbor_updated_msg.data = ss5.str();
+                distMapper->iterationReadyPublisher_.publish(neighbor_updated_msg);
 
                 // Iterations
                 ROS_INFO_STREAM("Maximaum Iteration: " << maxIter);
@@ -479,7 +481,7 @@ int main(int argc, char* argv[]) {
 
                     // before starting optimization, check if all neighbors are ready for current iteration
                     while(distMapper->currIterReady_ == false && ros::ok()) {
-                        if(iter==0 && robot==0) {break;}
+//                        if(iter==0 && robot==0) {break;}
                         //rate.sleep();
                         ros::spinOnce();
                     }
