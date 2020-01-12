@@ -49,12 +49,13 @@ namespace distributed_mapper{
             // Config
             robotId_ = robotId;
             currIter_ = -1;
-            currNeighbor_ = robotName;
             currIterReady_ = false;
             startReady_ = false;
             startReadyRecvFlag_ = true;
             currMsgRecv_ = false;
+            exitLoopFlag_ = false;
             neighborFlags_ = "";
+            latestChangeFlags_ = "";
             verbosity_ = SILENT;
             robotName_ = robotName;
             robotNames_ = std::move(robotNames); // suggested by clang
@@ -85,6 +86,12 @@ namespace distributed_mapper{
             iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 1, &DistributedMapper::iterationReadyCallBack, this);
             iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 1, true);
 
+            latestChangeSubscriber_ = nh_.subscribe<std_msgs::String>("latest_change_flag", 1, &DistributedMapper::latestChangeCallBack, this);
+            latestChangePublisher_ = nh_.advertise<std_msgs::String>("latest_change_flag", 1, true);
+
+            exitLoopSignalSubscriber_ = nh_.subscribe<std_msgs::String>("exit_loop_signal", 1, &DistributedMapper::exitLoopSignalCallBack, this);
+            exitLoopSignalPublisher_ = nh_.advertise<std_msgs::String>("exit_loop_signal", 1, true);
+
             initializedRequestSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_request", 1, &DistributedMapper::initializedRequestCallBack, this);
             initializedRequestPublisher_ = nh_.advertise<std_msgs::String>("initialized_request", 1, true);
 
@@ -107,24 +114,61 @@ namespace distributed_mapper{
             poseDataPublisher_ = nh_.advertise<std_msgs::String>("pose_data", 1, true);
         }
 
-        size_t currIter_;
         bool currIterReady_;
         bool startReady_;
         bool currMsgRecv_;
         bool startReadyRecvFlag_;
+        bool exitLoopFlag_;
+        bool tempPauseFlag_;
         std::string neighborFlags_;
-        char currNeighbor_;
+        std::string latestChangeFlags_;
         size_t currMsgId_;
+        size_t currIter_;
 
         void setCurrMsgRecv(bool flag) { currMsgRecv_ = flag; }
         void setCurrMsgId(size_t msg_id) { currMsgId_ = msg_id; }
         void setStartReady(bool flag) { startReady_ = flag; }
         void setStartReadyRecvFlag(bool flag) {startReadyRecvFlag_ = flag;}
+        void setExitLoopFlag(bool flag) { exitLoopFlag_ = flag; }
+        void setTempPauseFlag(bool flag) { tempPauseFlag_ = flag; }
         void restoreCurrIterReady() { currIterReady_ = false; }
         void restoreNeighborFlags() { neighborFlags_ = ""; }
+        void restoreLatestChangeFlags() { latestChangeFlags_ = ""; }
         void initCurrIter() { currIter_ = 0; }
         void setCurrIter(size_t iter) { currIter_ = iter; }
         void incCurrIter() { currIter_++; }
+
+        ros::Subscriber latestChangeSubscriber_;
+        ros::Publisher latestChangePublisher_;
+        void latestChangeCallBack(const std_msgs::StringConstPtr& _latestChangeMsg) {
+            const char *raw_msg = _latestChangeMsg->data.c_str();
+            char sourceName = raw_msg[0];
+
+            if(robotId_ == 0) {
+                if(robotNames_.find(sourceName) == std::string::npos) {
+                    tempPauseFlag_ = true;
+                    ROS_INFO_STREAM("Recv temp loop continue signal");
+                }
+                else {
+                    if (latestChangeFlags_.find(sourceName) == std::string::npos) {
+                        latestChangeFlags_ += sourceName;
+                        ROS_INFO_STREAM(robotName_ << ": " << latestChangeFlags_);
+                    }
+                    if (latestChangeFlags_.size() == robotNames_.size()) {
+                        //                    ROS_INFO_STREAM("Ready to exit loop.");
+                        exitLoopFlag_ = true;
+                        if (currIterReady_ == true) { ROS_INFO_STREAM("currIterReady_ == true"); }
+                    }
+                    tempPauseFlag_ = true;
+                }
+            }
+        }
+
+        ros::Subscriber exitLoopSignalSubscriber_;
+        ros::Publisher exitLoopSignalPublisher_;
+        void exitLoopSignalCallBack(const std_msgs::StringConstPtr& _exitLoopMsg) {
+            exitLoopFlag_ = true;
+        }
 
         ros::Subscriber startReadySubscriber_;
         ros::Publisher startReadyPublisher_;

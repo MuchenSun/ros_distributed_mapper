@@ -335,6 +335,21 @@ int main(int argc, char* argv[]) {
                     // reset flag immediately
                     distMapper->restoreCurrIterReady();
 
+                    // decide whether exit loop
+                    if(distMapper->exitLoopFlag_ == true) {
+                        std_msgs::String exitLoopMsg;
+                        exitLoopMsg.data = "1";
+                        distMapper->exitLoopSignalPublisher_.publish(exitLoopMsg);
+                        rate.sleep();
+
+                        std_msgs::String continueNextNodeMsg;
+                        continueNextNodeMsg.data = distMapper->robotName();
+                        distMapper->iterationReadyPublisher_.publish(continueNextNodeMsg);
+                        rate.sleep();
+
+                        break;
+                    }
+
                     // ask other robots for updated estimates and update it
                     size_t msg_id = 0;
                     for (const gtsam::Values::ConstKeyValuePair &key_value: distMapper->neighbors()) {
@@ -386,6 +401,20 @@ int main(int argc, char* argv[]) {
                     distMapper->estimateRotation();
                     distMapper->updateInitialized(true);
                     if(distMapper->updateType_ == DistributedMapper::incUpdate) {distMapper->updateRotation();} //TODO: implement a postUpdate version
+
+                    // evaluate latest change
+                    double change = distMapper->latestChange();
+                    if(change < rotationEstimateChangeThreshold) {
+                        std_msgs::String latestRotationChangeMsg;
+                        latestRotationChangeMsg.data = distMapper->robotName();
+                        distMapper->latestChangePublisher_.publish(latestRotationChangeMsg);
+                    }
+                    else {
+                        std_msgs::String latestRotationChangeNegativeMsg;
+                        latestRotationChangeNegativeMsg.data = "1";
+                        distMapper->latestChangePublisher_.publish(latestRotationChangeNegativeMsg);
+                    }
+                    rate.sleep();
 
                     // let next node start
                     std::stringstream ss3;
@@ -445,6 +474,8 @@ int main(int argc, char* argv[]) {
                 distMapper->restoreNeighborFlags();
                 // init current iteration number
                 distMapper->initCurrIter();
+                // reset exitLoopFlag
+                distMapper->setExitLoopFlag(false);
 
                 // Before start iteration, make sure all neighbors are ready to start
 //                distMapper->setStartReadyRecvFlag(true);
@@ -488,6 +519,21 @@ int main(int argc, char* argv[]) {
                     }
                     // reset flag immediately
                     distMapper->restoreCurrIterReady();
+
+                    // decide whether exit loop
+                    if(distMapper->exitLoopFlag_ == true) {
+                        std_msgs::String exitLoopMsg;
+                        exitLoopMsg.data = "1";
+                        distMapper->exitLoopSignalPublisher_.publish(exitLoopMsg);
+                        rate.sleep();
+
+                        std_msgs::String continueNextNodeMsg;
+                        continueNextNodeMsg.data = distMapper->robotName();
+                        distMapper->iterationReadyPublisher_.publish(continueNextNodeMsg);
+                        rate.sleep();
+
+                        break;
+                    }
 
                     // ask other robots for updated estimates and update it
                     size_t msg_id = 0;
@@ -540,6 +586,20 @@ int main(int argc, char* argv[]) {
                     distMapper->estimatePoses();
                     distMapper->updateInitialized(true);
                     if(distMapper->updateType_ == DistributedMapper::incUpdate) {distMapper->updatePoses();} //TODO: implement a postUpdate version
+
+                    // evaluate latest change
+                    double change = distMapper->latestChange();
+                    if(change < poseEstimateChangeThreshold) {
+                        std_msgs::String latestPoseChangeMsg;
+                        latestPoseChangeMsg.data = distMapper->robotName();
+                        distMapper->latestChangePublisher_.publish(latestPoseChangeMsg);
+                    }
+                    else {
+                        std_msgs::String latestPoseChangeNegativeMsg;
+                        latestPoseChangeNegativeMsg.data = "1";
+                        distMapper->latestChangePublisher_.publish(latestPoseChangeNegativeMsg);
+                    }
+                    rate.sleep();
 
                     // let next node start
                     std::stringstream ss13;
