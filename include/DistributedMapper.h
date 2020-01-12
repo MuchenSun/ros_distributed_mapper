@@ -52,6 +52,7 @@ namespace distributed_mapper{
             currNeighbor_ = robotName;
             currIterReady_ = false;
             startReady_ = false;
+            startReadyRecvFlag_ = true;
             currMsgRecv_ = false;
             neighborFlags_ = "";
             verbosity_ = SILENT;
@@ -78,68 +79,52 @@ namespace distributed_mapper{
             latestChange_ = DBL_MAX;
 
             // Initialize communication configurations
-            startReadySubscriber_ = nh_.subscribe<std_msgs::String>("start_ready", 10, &DistributedMapper::startReadyCallBack, this);
-            startReadyPublisher_ = nh_.advertise<std_msgs::String>("start_ready", 10, true);
+            startReadySubscriber_ = nh_.subscribe<std_msgs::String>("start_ready", 1, &DistributedMapper::startReadyCallBack, this);
+            startReadyPublisher_ = nh_.advertise<std_msgs::String>("start_ready", 1, true);
 
-            iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
-            iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
+            iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 1, &DistributedMapper::iterationReadyCallBack, this);
+            iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 1, true);
 
-            initializedRequestSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_request", 10, &DistributedMapper::initializedRequestCallBack, this);
-            initializedRequestPublisher_ = nh_.advertise<std_msgs::String>("initialized_request", 10, true);
+            initializedRequestSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_request", 1, &DistributedMapper::initializedRequestCallBack, this);
+            initializedRequestPublisher_ = nh_.advertise<std_msgs::String>("initialized_request", 1, true);
 
-            initializedDataSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_data", 10, &DistributedMapper::initializedDataCallBack, this);
-            initializedDataPublisher_ = nh_.advertise<std_msgs::String>("initialized_data", 10, true);
+            initializedDataSubscriber_ = nh_.subscribe<std_msgs::String>("initialized_data", 1, &DistributedMapper::initializedDataCallBack, this);
+            initializedDataPublisher_ = nh_.advertise<std_msgs::String>("initialized_data", 1, true);
 
-            iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 10, &DistributedMapper::iterationReadyCallBack, this);
-            iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 10, true);
+            iterationReadySubscriber_ = nh_.subscribe<std_msgs::String>("iteration_ready", 1, &DistributedMapper::iterationReadyCallBack, this);
+            iterationReadyPublisher_ = nh_.advertise<std_msgs::String>("iteration_ready", 1, true);
             
-            rotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_request", 10, &DistributedMapper::rotationRequestCallBack, this);
-            rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("rotation_request", 10, true);
+            rotationRequestSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_request", 1, &DistributedMapper::rotationRequestCallBack, this);
+            rotationRequestPublisher_ = nh_.advertise<std_msgs::String>("rotation_request", 1, true);
 
-            rotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_data", 10, &DistributedMapper::rotationDataCallBack, this);
-            rotationDataPublisher_ = nh_.advertise<std_msgs::String>("rotation_data", 10, true);
+            rotationDataSubscriber_ = nh_.subscribe<std_msgs::String>("rotation_data", 1, &DistributedMapper::rotationDataCallBack, this);
+            rotationDataPublisher_ = nh_.advertise<std_msgs::String>("rotation_data", 1, true);
 
-            poseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("pose_request", 10, &DistributedMapper::poseRequestCallBack, this);
-            poseRequestPublisher_ = nh_.advertise<std_msgs::String>("pose_request", 10, true);
+            poseRequestSubscriber_ = nh_.subscribe<std_msgs::String>("pose_request", 1, &DistributedMapper::poseRequestCallBack, this);
+            poseRequestPublisher_ = nh_.advertise<std_msgs::String>("pose_request", 1, true);
 
-            poseDataSubscriber_ = nh_.subscribe<std_msgs::String>("pose_data", 10, &DistributedMapper::poseDataCallBack, this);
-            poseDataPublisher_ = nh_.advertise<std_msgs::String>("pose_data", 10, true);
+            poseDataSubscriber_ = nh_.subscribe<std_msgs::String>("pose_data", 1, &DistributedMapper::poseDataCallBack, this);
+            poseDataPublisher_ = nh_.advertise<std_msgs::String>("pose_data", 1, true);
         }
 
         size_t currIter_;
         bool currIterReady_;
         bool startReady_;
         bool currMsgRecv_;
+        bool startReadyRecvFlag_;
         std::string neighborFlags_;
         char currNeighbor_;
         size_t currMsgId_;
 
-        void setCurrMsgRecv(bool flag) {
-            currMsgRecv_ = flag;
-        }
-
-        void setCurrMsgId(size_t msg_id) {
-            currMsgId_ = msg_id;
-        }
-
-        void setStartReady(bool flag) {
-            startReady_ = flag;
-        }
-        void restoreCurrIterReady() {
-            currIterReady_ = false;
-        }
-        void restoreNeighborFlags() {
-            neighborFlags_ = "";
-        }
-        void initCurrIter() {
-            currIter_ = 0;
-        }
-        void setCurrIter(size_t iter) {
-            currIter_ = iter;
-        }
-        void incCurrIter() {
-            currIter_++;
-        }
+        void setCurrMsgRecv(bool flag) { currMsgRecv_ = flag; }
+        void setCurrMsgId(size_t msg_id) { currMsgId_ = msg_id; }
+        void setStartReady(bool flag) { startReady_ = flag; }
+        void setStartReadyRecvFlag(bool flag) {startReadyRecvFlag_ = flag;}
+        void restoreCurrIterReady() { currIterReady_ = false; }
+        void restoreNeighborFlags() { neighborFlags_ = ""; }
+        void initCurrIter() { currIter_ = 0; }
+        void setCurrIter(size_t iter) { currIter_ = iter; }
+        void incCurrIter() { currIter_++; }
 
         ros::Subscriber startReadySubscriber_;
         ros::Publisher startReadyPublisher_;
@@ -147,14 +132,21 @@ namespace distributed_mapper{
             const char *raw_msg = _startReadyMsg->data.c_str();
             char sourceName = raw_msg[0];
 
-            if (neighborFlags_.find(sourceName) == std::string::npos) {
-                neighborFlags_ += sourceName;
+            if(startReadyRecvFlag_) {
+                if (neighborFlags_.find(sourceName) == std::string::npos) {
+                    neighborFlags_ += sourceName;
+                    ROS_INFO_STREAM(robotName_ << ": " << neighborFlags_);
+                }
+                if (neighborFlags_.size() == robotNames_.size()) {
+                    startReady_ = true;
+                    startReadyRecvFlag_ = false; // since the node will start, it will no longer receive this msg
+                }
             }
-            if(neighborFlags_.size() == robotNames_.size()) {
-                startReady_ = true;
+            else {
+                std_msgs::String msg;
+                msg.data = robotName_;
+                startReadyPublisher_.publish(msg);
             }
-
-//            ROS_INFO_STREAM(robotName_ << ": " << neighborFlags_);
         }
 
         ros::Subscriber iterationReadySubscriber_;
@@ -326,6 +318,7 @@ namespace distributed_mapper{
                 updateNeighborLinearizedRotations(key, rotationEstimate);
 
                 if(msg_id == currMsgId_) {
+//                    ROS_INFO_STREAM("[optimizeRotation] Finish current msg: " << msg_id);
                     currMsgRecv_ = true;
                 }
             }
@@ -363,6 +356,7 @@ namespace distributed_mapper{
                 updateNeighborLinearizedPoses(key, poseEstimate);
 
                 if(msg_id == currMsgId_) {
+//                    ROS_INFO_STREAM("[optimizePose] Finish current msg: " << msg_id);
                     currMsgRecv_ = true;
                 }
             }

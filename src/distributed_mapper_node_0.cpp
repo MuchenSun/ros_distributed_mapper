@@ -276,7 +276,8 @@ int main(int argc, char* argv[]) {
             cout << "Optimizing" << endl;
 
         // Rate of checking
-        ros::Rate rate(0.5);
+//        ros::Rate rate(10);
+        ros::Rate rate(0.2);
 
         // Distributed Estimate
         if (!disconnectedGraph) { // this means this robot is communicating ?
@@ -381,7 +382,6 @@ int main(int argc, char* argv[]) {
                     }
 
                     /* optimization */
-//                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << " about to start optimization at iteration: " << distMapper->currIter_);
                     distMapper->estimateRotation();
                     distMapper->updateInitialized(true);
                     if(distMapper->updateType_ == DistributedMapper::incUpdate) {distMapper->updateRotation();} //TODO: implement a postUpdate version
@@ -452,6 +452,7 @@ int main(int argc, char* argv[]) {
                 distMapper->initCurrIter();
 
                 // Before start iteration, make sure all neighbors are ready to start
+                distMapper->setStartReadyRecvFlag(true);
                 while(!distMapper->startReady_ && ros::ok()) {
                     std_msgs::String start_ready_msg3;
                     start_ready_msg3.data = distMapper->robotName();
