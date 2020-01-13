@@ -409,11 +409,11 @@ int main(int argc, char* argv[]) {
                         latestRotationChangeMsg.data = distMapper->robotName();
                         distMapper->latestChangePublisher_.publish(latestRotationChangeMsg);
                     }
-                    else {
-                        std_msgs::String latestRotationChangeNegativeMsg;
-                        latestRotationChangeNegativeMsg.data = "1";
-                        distMapper->latestChangePublisher_.publish(latestRotationChangeNegativeMsg);
-                    }
+//                    else {
+//                        std_msgs::String latestRotationChangeNegativeMsg;
+//                        latestRotationChangeNegativeMsg.data = "1";
+//                        distMapper->latestChangePublisher_.publish(latestRotationChangeNegativeMsg);
+//                    }
                     rate.sleep();
 
                     // let next node start
@@ -593,11 +593,11 @@ int main(int argc, char* argv[]) {
                         latestPoseChangeMsg.data = distMapper->robotName();
                         distMapper->latestChangePublisher_.publish(latestPoseChangeMsg);
                     }
-                    else {
-                        std_msgs::String latestPoseChangeNegativeMsg;
-                        latestPoseChangeNegativeMsg.data = "1";
-                        distMapper->latestChangePublisher_.publish(latestPoseChangeNegativeMsg);
-                    }
+//                    else {
+//                        std_msgs::String latestPoseChangeNegativeMsg;
+//                        latestPoseChangeNegativeMsg.data = "1";
+//                        distMapper->latestChangePublisher_.publish(latestPoseChangeNegativeMsg);
+//                    }
                     rate.sleep();
 
                     // let next node start

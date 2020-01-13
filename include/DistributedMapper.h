@@ -145,21 +145,13 @@ namespace distributed_mapper{
             char sourceName = raw_msg[0];
 
             if(robotId_ == 0) {
-                if(robotNames_.find(sourceName) == std::string::npos) {
-                    tempPauseFlag_ = true;
-                    ROS_INFO_STREAM("Recv temp loop continue signal");
+                if (latestChangeFlags_.find(sourceName) == std::string::npos) {
+                    latestChangeFlags_ += sourceName;
+                    ROS_INFO_STREAM(robotName_ << ": " << latestChangeFlags_);
                 }
-                else {
-                    if (latestChangeFlags_.find(sourceName) == std::string::npos) {
-                        latestChangeFlags_ += sourceName;
-                        ROS_INFO_STREAM(robotName_ << ": " << latestChangeFlags_);
-                    }
-                    if (latestChangeFlags_.size() == robotNames_.size()) {
-                        //                    ROS_INFO_STREAM("Ready to exit loop.");
-                        exitLoopFlag_ = true;
-                        if (currIterReady_ == true) { ROS_INFO_STREAM("currIterReady_ == true"); }
-                    }
-                    tempPauseFlag_ = true;
+                if (latestChangeFlags_.size() == robotNames_.size()) {
+                    ROS_INFO_STREAM("Ready to exit loop.");
+                    exitLoopFlag_ = true;
                 }
             }
         }

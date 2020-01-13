@@ -278,6 +278,7 @@ int main(int argc, char* argv[]) {
         // Rate of checking
 //        ros::Rate rate(10);
         ros::Rate rate(2);
+        ros::Rate rate2(0.5);
 
         // Distributed Estimate
         if (!disconnectedGraph) { // this means this robot is communicating ?
@@ -323,7 +324,7 @@ int main(int argc, char* argv[]) {
                     // clear neighborFlags for a new iteration
                     distMapper->restoreNeighborFlags();
                     // set tempPauseFlag as false
-                    distMapper->setTempPauseFlag(false);
+//                    distMapper->setTempPauseFlag(false);
 
                     // log
 //                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << ": " << distMapper->currIter_);
@@ -338,12 +339,12 @@ int main(int argc, char* argv[]) {
                     distMapper->restoreCurrIterReady();
                     rate.sleep();
 
-                    while(distMapper->tempPauseFlag_ == false && ros::ok()) {
-                        if(iter==0 && robot==0) {break;}
-                        ros::spinOnce();
-                    }
-                    // set tempPauseFlag as false
-                    distMapper->setTempPauseFlag(false);
+//                    while(distMapper->tempPauseFlag_ == false && ros::ok()) {
+//                        if(iter==0 && robot==0) {break;}
+//                        ros::spinOnce();
+//                    }
+//                    // set tempPauseFlag as false
+//                    distMapper->setTempPauseFlag(false);
 
 
                     // decide whether exit loop
@@ -419,12 +420,13 @@ int main(int argc, char* argv[]) {
                         latestRotationChangeMsg.data = distMapper->robotName();
                         distMapper->latestChangePublisher_.publish(latestRotationChangeMsg);
                     }
-                    else {
-                        std_msgs::String latestRotationChangeNegativeMsg;
-                        latestRotationChangeNegativeMsg.data = "1";
-                        distMapper->latestChangePublisher_.publish(latestRotationChangeNegativeMsg);
-                    }
+//                    else {
+//                        std_msgs::String latestRotationChangeNegativeMsg;
+//                        latestRotationChangeNegativeMsg.data = "1";
+//                        distMapper->latestChangePublisher_.publish(latestRotationChangeNegativeMsg);
+//                    }
                     rate.sleep();
+//                    rate2.sleep();
 
                     // let next node start
                     std::stringstream ss3;
@@ -520,7 +522,7 @@ int main(int argc, char* argv[]) {
                     // clear neighborFlags for a new iteration
                     distMapper->restoreNeighborFlags();
                     // set tempPauseFlag as false
-                    distMapper->setTempPauseFlag(false);
+//                    distMapper->setTempPauseFlag(false);
 
                     // log
 //                    ROS_INFO_STREAM("Robot " << distMapper->robotName() << ": " << distMapper->currIter_);
@@ -535,13 +537,13 @@ int main(int argc, char* argv[]) {
                     distMapper->restoreCurrIterReady();
                     rate.sleep();
 
-                    while(distMapper->tempPauseFlag_ == false && ros::ok()) {
-                        if(iter==0 && robot==0) {break;}
-                        ROS_INFO_STREAM("pose temp pause loop");
-                        ros::spinOnce();
-                    }
-                    // set tempPauseFlag as false
-                    distMapper->setTempPauseFlag(false);
+//                    while(distMapper->tempPauseFlag_ == false && ros::ok()) {
+//                        if(iter==0 && robot==0) {break;}
+//                        ROS_INFO_STREAM("pose temp pause loop");
+//                        ros::spinOnce();
+//                    }
+//                    // set tempPauseFlag as false
+//                    distMapper->setTempPauseFlag(false);
 
 
                     // decide whether exit loop
@@ -618,12 +620,13 @@ int main(int argc, char* argv[]) {
                         latestPoseChangeMsg.data = distMapper->robotName();
                         distMapper->latestChangePublisher_.publish(latestPoseChangeMsg);
                     }
-                    else {
-                        std_msgs::String latestPoseChangeNegativeMsg;
-                        latestPoseChangeNegativeMsg.data = "1";
-                        distMapper->latestChangePublisher_.publish(latestPoseChangeNegativeMsg);
-                    }
+//                    else {
+//                        std_msgs::String latestPoseChangeNegativeMsg;
+//                        latestPoseChangeNegativeMsg.data = "1";
+//                        distMapper->latestChangePublisher_.publish(latestPoseChangeNegativeMsg);
+//                    }
                     rate.sleep();
+//                    rate2.sleep();
 
                     // let next node start
                     std::stringstream ss13;
